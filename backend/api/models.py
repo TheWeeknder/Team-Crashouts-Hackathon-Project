@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 # --- Accounts ---------------------------------------------------------------
@@ -22,18 +23,44 @@ class Account(AbstractUser):
 
 # --- Projects ---------------------------------------------------------------
 
+PROJECT_COLOURS = [
+    ('#E57373', 'Red'),
+    ('#FFB74D', 'Orange'),
+    ('#FFF176', 'Yellow'),
+    ('#81C784', 'Green'),
+    ('#4DB6AC', 'Teal'),
+    ('#64B5F6', 'Blue'),
+    ('#9575CD', 'Purple'),
+    ('#F06292', 'Pink'),
+    ('#FFFFFF', 'White'),
+]
 class Project(models.Model):
+    STATUS_INCOMPLETED = "incompleted"
+    STATUS_IN_PROGRESS = "in_progress"
+    STATUS_COMPLETED = "completed"
+    STATUS_SKIPPED = "skipped"
+    STATUS_CHOICES = [
+        (STATUS_INCOMPLETED, "Incompleted"),
+        (STATUS_IN_PROGRESS, "In Progress"),
+        (STATUS_COMPLETED, "Completed"),
+        (STATUS_SKIPPED, "Skipped"),
+    ]
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='projects')
     title = models.CharField(max_length=255)
-    course = models.CharField(max_length=255)
     deadline = models.DateField(default=None, blank=True, null=True)
     estimated_hours = models.IntegerField(default=0, blank=True, null=True)
     completed_hours = models.IntegerField(default=0, blank=True, null=True)
-    remaining_hours = models.IntegerField(default=0, blank=True, null=True)
-    priority = models.IntegerField(default=0, blank=True, null=True)
-    status = models.CharField(max_length=255, default='Not Started', blank=True, null=True)
-    colour = models.CharField(max_length=7, default='#FFFFFF', blank=True, null=True)
+    # remaining_hours = models.IntegerField(default=0, blank=True, null=True)
+    priority = models.IntegerField(default=0, blank=True, null=True, validators=[MinValueValidator(0),MaxValueValidator(10)])
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_IN_PROGRESS)
+    colour = models.CharField(max_length=7, default='#FFFFFF', choices=PROJECT_COLOURS, blank=True, null=True)
+
+    @property
+    def remaining_hours(self):
+        estimated = self.estimated_hours or 0
+        completed = self.completed_hours or 0
+        return max(estimated - completed, 0)
 
     def __str__(self):
         return self.title

@@ -11,6 +11,8 @@ class AccountSerializer(serializers.ModelSerializer):
 # --- Projects ---------------------------------------------------------------
 
 class ProjectSerializer(serializers.ModelSerializer):
+    remaining_hours = serializers.ReadOnlyField()  # computed property on the model
+
     class Meta:
         model = Project
         fields = "__all__"
