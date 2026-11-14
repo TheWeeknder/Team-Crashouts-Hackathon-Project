@@ -7,9 +7,11 @@ import './LoginPage.css'
 type LoginPageProps = {
   // Called after a successful login, e.g. to navigate to the dashboard.
   onSuccess?: () => void
+  // Shows the register page instead (until we have a router).
+  onShowRegister?: () => void
 }
 
-export default function LoginPage({ onSuccess }: LoginPageProps) {
+export default function LoginPage({ onSuccess, onShowRegister }: LoginPageProps) {
   const { login } = useLogin()
   const logout = useLogout()
   const { user, isLoading } = useCurrentUser()
@@ -96,6 +98,15 @@ export default function LoginPage({ onSuccess }: LoginPageProps) {
             {login.isPending ? 'Logging in…' : 'Log in'}
           </button>
         </form>
+
+        {onShowRegister && (
+          <p className="login-switch">
+            No account yet?{' '}
+            <button type="button" onClick={onShowRegister}>
+              Create one
+            </button>
+          </p>
+        )}
       </section>
     </main>
   )

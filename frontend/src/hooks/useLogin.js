@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiFetch, basicAuthHeader, setAuthHeader } from '../api/api';
+import { signInWithPassword } from '../api/api';
 import { CURRENT_USER_KEY, removeAccountData } from './useCurrentUser';
 
 // Usage:
@@ -14,16 +14,10 @@ export default function useLogin() {
     const queryClient = useQueryClient();
 
     const login = useMutation({
-        mutationFn: async ({ username, password }) => {
-            const authorization = basicAuthHeader(username, password);
-            const user = await apiFetch('accounts/me/', {
-                headers: { Authorization: authorization },
-            });
-            // Store here, not in onSuccess, so the credentials never end up
-            // in the mutation's data.
-            setAuthHeader(authorization);
-            return user;
-        },
+        // signInWithPassword stores the auth header itself, so the
+        // credentials never end up in the mutation's data.
+        mutationFn: ({ username, password }) =>
+            signInWithPassword(username, password),
         onSuccess: (user) => {
             removeAccountData(queryClient);
             queryClient.setQueryData(CURRENT_USER_KEY, user);

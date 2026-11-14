@@ -5,17 +5,26 @@ import viteLogo from './assets/vite.svg'
 import useCurrentUser from './hooks/useCurrentUser'
 import useLogout from './hooks/useLogout'
 import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
+  const [authView, setAuthView] = useState<'login' | 'register'>('login')
   const { user } = useCurrentUser()
   const logout = useLogout()
 
   // Nobody logged in (or the saved login is still being checked):
-  // LoginPage handles both cases.
+  // LoginPage handles both cases. Replace authView with routes later.
   if (!user) {
-    return <LoginPage />
+    return authView === 'register' ? (
+      <RegisterPage
+        onShowLogin={() => setAuthView('login')}
+        onSuccess={() => setAuthView('login')}
+      />
+    ) : (
+      <LoginPage onShowRegister={() => setAuthView('register')} />
+    )
   }
 
   return (

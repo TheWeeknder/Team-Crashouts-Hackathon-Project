@@ -126,3 +126,52 @@
 .login-status strong {
   color: var(--text-h);
 }
+
+/* Field errors and the login/register switch (shared with RegisterPage). */
+
+.login-form input[aria-invalid='true'] {
+  border-color: rgba(220, 38, 38, 0.6);
+}
+
+.login-field-error {
+  margin: -12px 0 14px;
+  font-size: 14px;
+  color: #b91c1c;
+}
+
+@media (prefers-color-scheme: dark) {
+  .login-form input[aria-invalid='true'] {
+    border-color: rgba(248, 113, 113, 0.6);
+  }
+
+  .login-field-error {
+    color: #fca5a5;
+  }
+}
+
+.login-switch {
+  margin-top: 20px;
+  font-size: 15px;
+  text-align: center;
+  color: var(--text);
+}
+
+.login-switch button {
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.login-switch button:hover {
+  text-decoration: underline;
+}
+
+.login-switch button:focus-visible {
+  outline: 2px solid var(--accent-border);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
