@@ -211,3 +211,68 @@
     border-color: var(--accent-border);
   }
 }
+
+/* Custom Project Colours */
+
+.red {
+  color: black;
+  padding: 1 rem;
+  border-radius: 0.5 rem;
+  background: #E57373;
+}
+
+.orange {
+  color: black;
+  padding: 1 rem;
+  border-radius: 0.5 rem;
+  background: #FFB74D;
+}
+
+.yellow {
+  color: black;
+  padding: 1 rem;
+  border-radius: 0.5 rem;
+  background: #FFF176;
+}
+
+.green {
+  color: black;
+  padding: 1 rem;
+  border-radius: 0.5 rem;
+  background: #81C784;
+}
+
+.teal {
+  color: black;
+  padding: 1 rem;
+  border-radius: 0.5 rem;
+  background: #4DB6AC;
+}
+
+.blue {
+  color: black;
+  padding: 1 rem;
+  border-radius: 0.5 rem;
+  background: #64B5F6;
+}
+
+.purple {
+  color: black;
+  padding: 1 rem;
+  border-radius: 0.5 rem;
+  background: #9575CD;
+}
+
+.pink {
+  color: black;
+  padding: 1 rem;
+  border-radius: 0.5 rem;
+  background: #F06292;
+}
+
+.white {
+  color: black;
+  padding: 1 rem;
+  border-radius: 0.5 rem;
+  background: #FFFFFF;
+}

@@ -1,7 +1,6 @@
 function EventItem({ event }) {
   return (
-    <div>
-    </div>
+    <p className={event.project.colour}>{event.title} | {event.remaining_hours}</p>
   )
 }
 
