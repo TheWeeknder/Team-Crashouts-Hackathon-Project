@@ -116,6 +116,8 @@ npm run dev                                        # http://localhost:5173
 
 ## Roadmap
 
+See [docs/ROADMAP.md](docs/ROADMAP.md) for the detailed plan: owners, phases, the API contract and the demo script.
+
 - [ ] Data models: projects/tasks, commitments, work-window settings
 - [ ] REST API endpoints for those models
 - [ ] Scheduling algorithm (MVP: greedy, earliest-deadline-first)
