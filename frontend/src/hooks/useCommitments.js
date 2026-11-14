@@ -7,8 +7,8 @@ const RESOURCE = 'commitments';
 // Usage:
 //   const { commitments, createCommitment, updateCommitment, deleteCommitment } = useCommitments();
 //   commitments.data / commitments.isPending / commitments.error
-//   useCommitments({ kind: 'work' }) filters the list.
-//   createCommitment.mutate({ title: 'Work shift', kind: 'work', recuring: true, weekdays: '1,3', start_time: '13:00', end_time: '19:00' });
+//   useCommitments({ date: '2026-11-18' }) filters the list.
+//   createCommitment.mutate({ title: 'Work shift', recuring: true, weekdays: '1,3', start_time: '13:00', end_time: '19:00' });
 //   updateCommitment.mutate({ id, ...changedFields });   // PATCH
 //   deleteCommitment.mutate(id);
 export default function useCommitments(params) {

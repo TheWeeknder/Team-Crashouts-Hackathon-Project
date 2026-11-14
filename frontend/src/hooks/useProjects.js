@@ -7,8 +7,8 @@ const RESOURCE = 'projects';
 // Usage:
 //   const { projects, createProject, updateProject, deleteProject } = useProjects();
 //   projects.data / projects.isPending / projects.error
-//   useProjects({ status: 'Not Started', ordering: 'deadline' }) filters the list.
-//   createProject.mutate({ title: 'Capstone report', course: 'CMPE 2000', deadline: '2026-11-21', estimated_hours: 10 });
+//   useProjects({ status: 'in_progress', ordering: 'deadline' }) filters the list.
+//   createProject.mutate({ title: 'Capstone report', deadline: '2026-11-21', estimated_hours: 10 });
 //   updateProject.mutate({ id, ...changedFields });   // PATCH
 //   deleteProject.mutate(id);
 //
