@@ -72,7 +72,6 @@ class Commitment(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='commitments')
     title = models.CharField(max_length=255)
-    kind = models.CharField(max_length=255, default='work', blank=True, null=True)
     recuring = models.BooleanField(default=False, blank=True, null=True)
     weekdays = models.CharField(max_length=255, default='', blank=True, null=True)
     date = models.DateField(default=None, blank=True, null=True)
