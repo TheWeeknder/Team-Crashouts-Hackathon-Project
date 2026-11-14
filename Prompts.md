@@ -275,3 +275,45 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Prompt:** "Create PR" (desktop app button: push `cody-api-hooks` and open a pull request to `main`)
 - **Output / changes:** Added this entry, pushed `cody-api-hooks` and opened a pull request to `main` for the API hooks.
 - **Human review:** _TBD_
+
+### 21. Advice on the scheduling algorithm
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "How would we implement a scheduling algorithm, is there a good one already out there or should we create our own? Should it be on the front end?"
+- **Output / changes:** Advice only, no code. The recommendation: write our own earliest-deadline-first scheduler in Python on the backend, as a pure module with a `generate` endpoint, and keep Google OR-Tools CP-SAT as an option for later. The answer also listed the backend model gaps that the planner must handle.
+- **Human review:** _TBD_
+
+### 22. Build the scheduler
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Build it" (answer to: "Build the scheduler engine and generate endpoint next?")
+- **Output / changes:**
+  - `backend/api/scheduler.py`: an earliest-deadline-first planner in plain Python with no Django imports. It finds free time (the work window minus commitments, day overrides and kept blocks), applies the daily limit and the block and break sizes, places blocks before each deadline, and returns alerts with the shortfall and suggestions.
+  - `backend/api/views.py` and `urls.py`: `POST /api/v1/planner/generate/`. The body can include `now` (the browser's local time, because the server runs in UTC) and `dry_run`. The endpoint keeps completed blocks and blocks that already started, and replaces the rest in one transaction. It also removes the stale `kind` filter from `CommitmentViewSet`, because migration 0003 removed that field and the filter caused a server error.
+  - `backend/api/test_scheduler.py`: 16 tests for the planner and the endpoint, including the README example (7 hours remain, 5 fit, 2 short).
+  - `frontend/src/hooks/useGeneratePlan.js` and `.d.ts`: calls the endpoint with the local time and refreshes study block lists.
+  - `frontend/src/types/backend.ts` and hook examples: updated for the new models (no `course` and no `kind`, status choices, colour choices, priority 0 to 10), plus the plan response types.
+  - Tested the hook end to end in the browser against a throwaway, migrated copy of the database.
+- **Human review:** _TBD_
+
+### 23. Commit the scheduler
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Commit the working tree changes with a sensible message."
+- **Output / changes:** Committed the work from entry 22 to `cody-scheduler` in two commits: the backend scheduler and endpoint, then the frontend hook and type updates with entries 22 and 23.
+- **Human review:** _TBD_
+
+### 24. Open a pull request for the scheduler
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Create PR" (desktop app button: push `cody-scheduler` and open a pull request to `main`)
+- **Output / changes:** Added this entry, pushed `cody-scheduler` and opened a pull request to `main` for the scheduler.
+- **Human review:** _TBD_

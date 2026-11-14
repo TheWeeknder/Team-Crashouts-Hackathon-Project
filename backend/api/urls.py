@@ -1,9 +1,11 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
     AccountViewSet,
     CommitmentViewSet,
     DayOverrideViewSet,
+    GeneratePlanView,
     PlannerSettingsViewSet,
     ProjectViewSet,
     StudyBlockViewSet,
@@ -17,4 +19,6 @@ router.register("planner-settings", PlannerSettingsViewSet, basename="planner-se
 router.register("day-overrides", DayOverrideViewSet, basename="day-override")
 router.register("study-blocks", StudyBlockViewSet, basename="study-block")
 
-urlpatterns = router.urls
+urlpatterns = router.urls + [
+    path("planner/generate/", GeneratePlanView.as_view(), name="planner-generate"),
+]
