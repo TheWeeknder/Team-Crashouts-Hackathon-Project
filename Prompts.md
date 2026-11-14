@@ -201,3 +201,12 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Prompt:** "Commit the working tree changes with a sensible message."
 - **Output / changes:** Committed the login page, the hook type files, the `App.tsx` login gate, the `useCurrentUser` fix and entries 11 to 13 to `cody-login-page`. Left the unrelated deletion of `frontend/src/api/schedule.js` uncommitted.
 - **Human review:** _TBD_
+
+### 14. Open a pull request for the login page
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Create PR" (desktop app button: push `cody-login-page` and open a pull request to `main`)
+- **Output / changes:** Added this entry, pushed `cody-login-page` and opened a pull request to `main` for the login page.
+- **Human review:** _TBD_
