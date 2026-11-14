@@ -266,3 +266,12 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Prompt:** "Commit the working tree changes with a sensible message."
 - **Output / changes:** Committed the hooks, types and log entries 18 and 19 from this work to `cody-api-hooks`.
 - **Human review:** _TBD_
+
+### 20. Open a pull request for the API hooks
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Create PR" (desktop app button: push `cody-api-hooks` and open a pull request to `main`)
+- **Output / changes:** Added this entry, pushed `cody-api-hooks` and opened a pull request to `main` for the API hooks.
+- **Human review:** _TBD_
