@@ -17,7 +17,10 @@ export function removeAccountData(queryClient) {
 export default function useCurrentUser() {
     const hasAuth = getAuthHeader() !== null;
 
-    const query = useQuery({
+    // Read every field up front. TanStack Query only re-renders for fields
+    // the component read, so reading `data` only when hasAuth is true would
+    // leave logged-out components stuck after a login.
+    const { data, isPending, error } = useQuery({
         queryKey: CURRENT_USER_KEY,
         queryFn: () => apiFetch('accounts/me/'),
         enabled: hasAuth,
@@ -25,12 +28,12 @@ export default function useCurrentUser() {
         staleTime: Infinity,
     });
 
-    const user = hasAuth ? (query.data ?? null) : null;
+    const user = hasAuth ? (data ?? null) : null;
 
     return {
         user,
         isLoggedIn: user !== null,
-        isLoading: hasAuth && query.isPending,
-        error: query.error,
+        isLoading: hasAuth && isPending,
+        error,
     };
 }
