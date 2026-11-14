@@ -234,3 +234,12 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Prompt:** "Commit the working tree changes with a sensible message."
 - **Output / changes:** Committed the work from entry 15 to `cody-register-page` in two commits: the missing `@fullcalendar/react` dependency, then the register page with entries 15 and 16.
 - **Human review:** _TBD_
+
+### 17. Open a pull request for the register page
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Create PR" (desktop app button: push `cody-register-page` and open a pull request to `main`)
+- **Output / changes:** Added this entry, pushed `cody-register-page` and opened a pull request to `main` for the register page and the FullCalendar dependency fix.
+- **Human review:** _TBD_
