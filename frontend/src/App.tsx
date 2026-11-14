@@ -2,13 +2,33 @@ import { useState } from 'react'
 import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
+import useCurrentUser from './hooks/useCurrentUser'
+import useLogout from './hooks/useLogout'
+import LoginPage from './pages/LoginPage'
 import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
+  const { user } = useCurrentUser()
+  const logout = useLogout()
+
+  // Nobody logged in (or the saved login is still being checked):
+  // LoginPage handles both cases.
+  if (!user) {
+    return <LoginPage />
+  }
 
   return (
     <>
+      <header className="session-bar">
+        <span>
+          Signed in as <strong>{user.username}</strong>
+        </span>
+        <button type="button" onClick={logout}>
+          Log out
+        </button>
+      </header>
+
       <section id="center">
         <div className="hero">
           <img src={heroImg} className="base" width="170" height="179" alt="" />
