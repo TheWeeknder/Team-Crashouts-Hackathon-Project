@@ -54,10 +54,13 @@ function errorMessage(status, data) {
 }
 
 // fetch wrapper: prefixes api_url, sends JSON, adds the stored auth header
-// (unless the caller passes its own Authorization), and throws ApiError on
-// non-2xx responses.
-export async function apiFetch(path, { headers = {}, body, ...options } = {}) {
-    const auth = getAuthHeader();
+// (unless the caller passes its own Authorization, or auth: false), and
+// throws ApiError on non-2xx responses.
+export async function apiFetch(
+    path,
+    { headers = {}, body, auth: withAuth = true, ...options } = {},
+) {
+    const auth = withAuth ? getAuthHeader() : null;
     const response = await fetch(`${api_url}${path}`, {
         ...options,
         headers: {
@@ -80,4 +83,16 @@ export async function apiFetch(path, { headers = {}, body, ...options } = {}) {
         throw new ApiError(response.status, data);
     }
     return data;
+}
+
+// Checks a username and password with GET accounts/me/ (the backend has no
+// login endpoint) and, if they work, stores the auth header. Returns the
+// account. Used by useLogin and useRegister.
+export async function signInWithPassword(username, password) {
+    const authorization = basicAuthHeader(username, password);
+    const user = await apiFetch('accounts/me/', {
+        headers: { Authorization: authorization },
+    });
+    setAuthHeader(authorization);
+    return user;
 }

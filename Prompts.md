@@ -167,3 +167,111 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Prompt:** "Create PR" (desktop app button: push `cody-login-hook` and open a pull request to `main`)
 - **Output / changes:** Added this entry, pushed `cody-login-hook` and opened a pull request to `main` for the login hook.
 - **Human review:** _TBD_
+
+### 11. Basic login page
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Can you make a basic login page on the LoginPage.tsx"
+- **Output / changes:**
+  - `frontend/src/pages/LoginPage.tsx`: a username and password form that uses `useLogin`. It shows errors and a pending state, takes an optional `onSuccess` prop, and shows "You are logged in" with a Log out button when a user is signed in.
+  - `frontend/src/pages/LoginPage.css`: plain CSS that uses the color tokens in `index.css`, for light and dark mode.
+  - Added `useLogin.d.ts`, `useLogout.d.ts` and `useCurrentUser.d.ts` in `frontend/src/hooks/`, because TypeScript 6 is strict by default and rejects imports from the untyped `.js` hooks.
+  - Tested a wrong password, a correct login, logout, dark mode, light mode and phone width in the browser against a throwaway copy of the backend database.
+- **Human review:** _TBD_
+
+### 12. Show the login page in the app
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Yes, wire it in" (answer to: "Show the login page in App.tsx when nobody is logged in?")
+- **Output / changes:**
+  - `frontend/src/App.tsx`: shows `LoginPage` when nobody is logged in. After login, it shows the app with a "Signed in as" bar and a Log out button. Styles are in `frontend/src/App.css`.
+  - Fixed a bug in `frontend/src/hooks/useCurrentUser.js`. TanStack Query re-renders a component only for the fields that it read. The hook skipped `data` when logged out, so `App` did not update after a login.
+  - Tested login, reload and logout in the browser against a throwaway copy of the backend database.
+- **Human review:** _TBD_
+
+### 13. Commit the login page
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Commit the working tree changes with a sensible message."
+- **Output / changes:** Committed the login page, the hook type files, the `App.tsx` login gate, the `useCurrentUser` fix and entries 11 to 13 to `cody-login-page`. Left the unrelated deletion of `frontend/src/api/schedule.js` uncommitted.
+- **Human review:** _TBD_
+
+### 14. Open a pull request for the login page
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Create PR" (desktop app button: push `cody-login-page` and open a pull request to `main`)
+- **Output / changes:** Added this entry, pushed `cody-login-page` and opened a pull request to `main` for the login page.
+- **Human review:** _TBD_
+
+### 15. Basic register page
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "make a basic register page too"
+- **Output / changes:**
+  - `frontend/src/pages/RegisterPage.tsx`: username, email, password and confirm-password fields. It checks the fields in the browser first (required fields, email format, at least 8 characters, matching passwords). It shows Django's 400 errors next to each field and logs the user in after sign-up.
+  - `frontend/src/hooks/useRegister.js` and `useRegister.d.ts`: `POST /api/v1/accounts/`, then log in with the same username and password.
+  - `frontend/src/api/api.js`: moved the sign-in step into `signInWithPassword` (now shared by `useLogin` and `useRegister`) and added an `auth: false` option to `apiFetch`.
+  - `LoginPage.tsx` and `App.tsx`: "Create one" and "Log in" links switch between the two pages until a router exists. `LoginPage.css` has the new field error and link styles.
+  - `frontend/package.json`: added `@fullcalendar/react@^7.1.5`. Pull request 11 imports it but did not list it, so `main` did not build.
+  - Tested empty fields, a taken username, a successful sign-up, logout, and dark mode at phone width in the browser against a throwaway copy of the backend database.
+- **Human review:** _TBD_
+
+### 16. Commit the register page
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Commit the working tree changes with a sensible message."
+- **Output / changes:** Committed the work from entry 15 to `cody-register-page` in two commits: the missing `@fullcalendar/react` dependency, then the register page with entries 15 and 16.
+- **Human review:** _TBD_
+
+### 17. Open a pull request for the register page
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Create PR" (desktop app button: push `cody-register-page` and open a pull request to `main`)
+- **Output / changes:** Added this entry, pushed `cody-register-page` and opened a pull request to `main` for the register page and the FullCalendar dependency fix.
+- **Human review:** _TBD_
+
+### 18. Hooks for the backend API
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Can you make the required hooks to interact with the backend?"
+- **Output / changes:**
+  - `frontend/src/hooks/resource.js` (with `resource.d.ts`): shared TanStack Query helpers for the DRF viewsets. They list with filters, fetch one record, and create, PATCH-update and delete records. After each change they refresh the cached lists. Boolean filters are sent as `1`/`0`, because Django rejects `true`/`false`.
+  - `useProjects`, `useCommitments`, `useDayOverrides` and `useStudyBlocks` (each with a `.d.ts`): list, one record, create, update and delete. Deleting a project also refreshes study blocks, because the backend deletes them too (CASCADE). `useProjects.js` replaces the empty stub.
+  - `usePlannerSettings`: reads the user's single settings record, or `null` if there is none. `saveSettings` creates it the first time and PATCHes it after that.
+  - `frontend/src/types/backend.ts`: TypeScript types that match `backend/api/models.py`, which differs from the planned contract in `types/api.ts`.
+  - Tested every hook in the browser against a throwaway copy of the backend database. The tests covered create, list, filters (including `completed`), detail, update, a 400 for a missing field, the project-delete cascade, and settings create-then-update.
+- **Human review:** _TBD_
+
+### 19. Commit the API hooks
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Commit the working tree changes with a sensible message."
+- **Output / changes:** Committed the hooks, types and log entries 18 and 19 from this work to `cody-api-hooks`.
+- **Human review:** _TBD_
+
+### 20. Open a pull request for the API hooks
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Create PR" (desktop app button: push `cody-api-hooks` and open a pull request to `main`)
+- **Output / changes:** Added this entry, pushed `cody-api-hooks` and opened a pull request to `main` for the API hooks.
+- **Human review:** _TBD_
