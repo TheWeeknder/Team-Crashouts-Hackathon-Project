@@ -135,3 +135,35 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
   - Updated `INSTALLED_APPS` to `'api'` and `config/urls.py` to include `api.urls` under `api/v1/`.
   - Updated the project structure in `README.md` and the old app paths in `docs/ROADMAP.md`.
 - **Human review:** _TBD_
+
+### 8. Frontend login hook
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Can you implement the login hook on the front end?"
+- **Output / changes:**
+  - Installed `@tanstack/react-query` and wrapped the app in `QueryClientProvider` in `frontend/src/main.tsx`.
+  - `frontend/src/api/api.js`: exported `api_url` (reads `VITE_API_URL`), added `apiFetch`, `ApiError` and helpers that keep the Basic auth header in `sessionStorage`.
+  - Finished `frontend/src/hooks/useLogin.js`. It checks the username and password with `GET /api/v1/accounts/me/`, because the backend uses Basic auth and has no login endpoint.
+  - Added `frontend/src/hooks/useCurrentUser.js` and `frontend/src/hooks/useLogout.js`.
+  - Tested login, wrong password, page reload, stale credentials and logout in the browser against a throwaway copy of the backend database.
+- **Human review:** _TBD_
+
+### 9. Commit the login hook
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Branch and commit"
+- **Output / changes:** Created branch `cody-login-hook` and committed the login hook files from entry 8 and this log entry. Left the unrelated changes to `useProjects.js` and `api/schedule.js` uncommitted.
+- **Human review:** _TBD_
+
+### 10. Open a pull request for the login hook
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Create PR" (desktop app button: push `cody-login-hook` and open a pull request to `main`)
+- **Output / changes:** Added this entry, pushed `cody-login-hook` and opened a pull request to `main` for the login hook.
+- **Human review:** _TBD_
