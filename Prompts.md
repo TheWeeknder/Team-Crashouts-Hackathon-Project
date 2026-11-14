@@ -66,3 +66,12 @@ This file records every use of AI tools on this project, for transparency with t
 - **Prompt:** "Commit the working tree changes with a sensible message."
 - **Output / changes:** Committed `docs/ROADMAP.md`, the README link and Prompts.md entries 3 and 4 to the `cody` branch.
 - **Human review:** _TBD_
+
+### 5. Open a pull request for the roadmap
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), desktop app
+- **Used by:** Cody
+- **Prompt:** "Create PR" (desktop app button: push the `cody` branch and open a pull request to `main`)
+- **Output / changes:** Added this entry, pushed the `cody` branch and opened a pull request to `main` for the roadmap.
+- **Human review:** _TBD_
