@@ -120,3 +120,18 @@ Traceback (most recent call last):
 django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check that 'apps.projects.apps.ProjectsConfig.name' is correct."
 - **Output / changes:** Updated all four Django AppConfig `name` values to match their `apps.*` package paths used in settings and generated initial migrations for the four apps.
 - **Human review:** _TBD_"
+
+### 7. Collapse backend apps into one app
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "Restructure backend folders and collapse all apps into one app"
+- **Output / changes:**
+  - Replaced `backend/apps/` (`accounts`, `projects`, `schedules`, `planner`) with a single app at `backend/api/`.
+  - Merged all six models (`Account`, `Project`, `Commitment`, `PlannerSettings`, `DayOverride`, `StudyBlock`) into `api/models.py`, and all admin registrations into `api/admin.py`.
+  - Moved the in-progress `Account` serializer, viewset and router into `api/serializers.py`, `api/views.py` and `api/urls.py`, fixing the broken `urls.py` and the misplaced serializer.
+  - Removed the four old migrations and generated a single `api/migrations/0001_initial.py`.
+  - Updated `INSTALLED_APPS` to `'api'` and `config/urls.py` to include `api.urls` under `api/v1/`.
+  - Updated the project structure in `README.md` and the old app paths in `docs/ROADMAP.md`.
+- **Human review:** _TBD_

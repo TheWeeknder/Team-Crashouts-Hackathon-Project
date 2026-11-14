@@ -58,11 +58,8 @@ An **adaptive study planner** that:
 Team-Crashouts-Hackathon-Project/
 ├── backend/                  # Django API
 │   ├── config/               # Django project settings, root URLs, WSGI/ASGI
-│   ├── apps/
-│   │   ├── accounts/         # Users and auth
-│   │   ├── projects/         # Projects/tasks: deadlines, estimates, progress
-│   │   ├── schedules/        # Other commitments and work-window settings
-│   │   └── planner/          # Scheduling algorithm and feasibility alerts
+│   ├── api/                  # Single Django app: models, serializers, views, URLs
+│   │   └── migrations/       # (accounts, projects, schedules and planner in one app)
 │   ├── tests/
 │   └── requirements.txt
 ├── frontend/                 # React + TypeScript client
@@ -97,7 +94,7 @@ python -m venv .venv
 pip install django djangorestframework django-cors-headers
 pip freeze > requirements.txt
 django-admin startproject config .
-python manage.py startapp accounts apps/accounts   # repeat for projects, schedules, planner
+python manage.py startapp api                       # one app holds all models and endpoints
 python manage.py migrate
 python manage.py runserver                         # http://localhost:8000
 ```
