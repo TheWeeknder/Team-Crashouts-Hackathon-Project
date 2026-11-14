@@ -220,7 +220,7 @@ Goal: both servers run from `main`, and everyone codes against the same contract
 | --- | --- | --- | --- |
 | `A0.1` | All | Read this document. Agree on section 3. Freeze section 4. | |
 | `B0.1` | Justin | Fix the backend gaps in section 2. Correct the app names in each `apps.py`. Add `rest_framework`, `rest_framework.authtoken`, `corsheaders` and the four apps to `INSTALLED_APPS`. Allow CORS for `http://localhost:5173`. Set `TIME_ZONE`. Set the DRF default auth and permission classes. Add an `api/` include to `config/urls.py`. Merge to `main` first so everyone builds on it. | |
-| `B0.2` | Cody | Create `backend/apps/planner/engine.py` as plain Python with dataclasses and no Django imports. Write the first tests in `backend/apps/planner/tests.py`. This work needs no models, so it starts at once. | |
+| `B0.2` | Cody | Create `backend/api/engine.py` as plain Python with dataclasses and no Django imports. Write the first tests in `backend/api/tests.py`. This work needs no models, so it starts at once. | |
 | `F0.1` | Robin | Install Tailwind and daisyUI. Delete the Vite demo content. Create the `src/` folders from the README. Add `react-router` with routes `/login`, `/dashboard`, `/calendar`, `/tasks`, `/schedule` and `/settings`. Build a layout with a navbar. Pick a daisyUI theme. | |
 | `F0.2` | JP | Write `src/types/api.ts` from section 4. Write `src/services/mocks.ts` with one week of events, three tasks and one alert. Install FullCalendar and `date-fns`. | |
 
@@ -348,7 +348,7 @@ A known limit: EDF fills the earliest days first, so later days stay empty. If t
 | --- | --- |
 | `Prompts.md` | Append only. Pull `main` before you add an entry. If two entries get the same number, renumber yours. |
 | `backend/config/settings.py` | Justin owns it. Ask Justin before you change it. |
-| `backend/config/urls.py` | Each app has its own `urls.py`. The root file only includes them. |
+| `backend/config/urls.py` | All endpoints live in `backend/api/urls.py`. The root file only includes it under `api/v1/`. |
 | `frontend/src/types/api.ts` | JP owns it after Phase 0. A change here needs the same change in the backend serializer and in section 4. |
 
 ### Definition of done for a task
