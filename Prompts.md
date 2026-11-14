@@ -75,3 +75,48 @@ This file records every use of AI tools on this project, for transparency with t
 - **Prompt:** "Create PR" (desktop app button: push the `cody` branch and open a pull request to `main`)
 - **Output / changes:** Added this entry, pushed the `cody` branch and opened a pull request to `main` for the roadmap.
 - **Human review:** _TBD_
+
+### 6. Fix Django app import configuration
+
+- **Date:** 2026-11-14
+- **Tool / model:** Copilot SDK in VS Code (model not surfaced)
+- **Used by:** Cody
+- **Prompt:** "(.venv) cody@lap-cody-lenovo:/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend$ python3 manage.py makemigrations
+Traceback (most recent call last):
+  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/apps/config.py\", line 210, in create
+    app_module = import_module(app_name)
+  File \"/usr/lib/python3.13/importlib/__init__.py\", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import
+  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load
+  File \"<frozen importlib._bootstrap>\", line 1324, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'projects'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/manage.py\", line 22, in <module>
+    main()
+    ~~~~^^
+  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/manage.py\", line 18, in main
+    execute_from_command_line(sys.argv)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/core/management/__init__.py\", line 443, in execute_from_command_line
+    utility.execute()
+    ~~~~~~~~~~~~~~~^^
+  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/core/management/__init__.py\", line 417, in execute
+    django.setup()
+    ~~~~~~~~~~~~^^
+  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/__init__.py\", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/apps/registry.py\", line 91, in populate
+    app_config = AppConfig.create(entry)
+  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/apps/config.py\", line 212, in create
+    raise ImproperlyConfigured(
+    ...<6 lines>...
+    )
+django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check that 'apps.projects.apps.ProjectsConfig.name' is correct."
+- **Output / changes:** Updated all four Django AppConfig `name` values to match their `apps.*` package paths used in settings and generated initial migrations for the four apps.
+- **Human review:** _TBD_"
