@@ -30,15 +30,15 @@ The work splits into two pairs. Each pair shares one part of the API, so each pa
 
 ## 2. Current state of the repo (2026-11-14)
 
-Checked against `main` after PR #26 (`6c7d008`).
+Checked against `main` after PR #29 (`ce2d846`).
 
 **Summary:** the core demo flow now works end to end in the browser. A user can:
 - sign up and enter projects, commitments, time off and study hours
 - generate a plan and see it on the weekly and monthly calendars
-- see alerts for projects that don't fit
+- see live alerts for projects that don't fit, which stay after a reload, and preview the effect of time off before saving it
 - mark sessions done, which updates project progress
 
-All 30 backend tests pass, and `npm run build` passes. `python manage.py seed_demo` creates the demo account. What's left: the plan does not update itself after a change (the user clicks "Regenerate"), the demo has not been rehearsed, and Phase 5 polish and pitch work has not started.
+All 34 backend tests pass, there are no pending migrations, and `npm run build` and `eslint` pass. `python manage.py seed_demo` creates the demo account. What's left: the demo has not been rehearsed, Phase 5 polish and pitch work has not started, and the security and validation gaps are still open. The plan does not update itself after a change: alerts update at once, but the user clicks "Update my plan" or "Regenerate" to move the blocks.
 
 ### 2.1 Status by task
 
@@ -49,7 +49,7 @@ All 30 backend tests pass, and `npm run build` passes. `python manage.py seed_de
 | ID | Status | Notes |
 | --- | --- | --- |
 | `B0.1` | ✅ | DRF, CORS, `TIME_ZONE = "America/Edmonton"`, `api/v1/` route. Auth is Basic auth (`D4`). |
-| `B0.2`, `B1.5`, `B2.1`, `B3.1` | ✅ | EDF planner in `backend/api/scheduler.py`, with free-time building, block placement and alerts with suggestions. |
+| `B0.2`, `B1.5`, `B2.1`, `B3.1` | ✅ | EDF planner in `backend/api/scheduler.py`, with free-time building, block placement and alerts. Since PR #29, suggestions count only days that still have free time, say clearly when no study time is left, and suggest a higher daily limit only when the limit is what blocks the work. |
 | `B1.1` | 🟡 | All six models exist and are in Django admin. Field names and types differ from section 4.1 (see 2.2). |
 | `B1.2` | 🟡 | A viewset for each model, scoped to `request.user`. The section 4.1 rules are **not** enforced on the server: `completed_hours ≤ estimated_hours`, `end_time > start_time`, one settings row per user. The frontend forms check some of these. |
 | `B1.3` | 🟡 | Sign up is `POST /accounts/`, and the current user is `GET /accounts/me/`. There is no token or login endpoint. |
@@ -57,7 +57,7 @@ All 30 backend tests pass, and `npm run build` passes. `python manage.py seed_de
 | `B1.6` | ✅ | `StudyBlock` (`date`, `start_time`, `end_time`, `completed`). It has no `missed` or `locked` field. |
 | `B2.2` | ✅ | `POST /planner/generate/`. It snapshots the blocks it replaces and converts a `now` with an offset to Edmonton time. |
 | `B2.3`, `B3.2` | 🟡 | `/planner/events/` and `/planner/week/` exist and are tested, but **the frontend does not use them**. It builds the same data in `lib/events.ts` (see `D1`). There is no `/planner/alerts/`. |
-| `B2.4` | 🟡 | 30 tests: `test_scheduler.py` (planner and its endpoints) and `test_seed_demo.py`. `api/tests.py` is empty: there are no CRUD or permission tests for the other endpoints. |
+| `B2.4` | 🟡 | 34 tests: `test_scheduler.py` (planner, suggestions and planner endpoints) and `test_seed_demo.py`. `api/tests.py` is empty: there are no CRUD or permission tests for the other endpoints. |
 | `B3.3` | 🟡 | There is no `progress/` endpoint. The frontend `PATCH`es `completed_hours` and `status` itself (`lib/progress.ts`). |
 | `B4.1` | 🟡 | Marking a block done works. The frontend also adds the block's hours to the project, rounded to whole hours, because `completed_hours` is an integer. |
 | `B4.2`, `B4.3` | 🟡 | `generate` works as a replan. Nothing replans automatically: after a change, the frontend marks the plan as out of date and asks the user to regenerate. |
@@ -68,17 +68,17 @@ All 30 backend tests pass, and `npm run build` passes. `python manage.py seed_de
 | --- | --- | --- |
 | `F0.1` | 🟡 | Tailwind, daisyUI, navbar and views: Overview, Dashboard, Calendar, Tasks and Schedule. Views switch through state in `App.tsx`, because `react-router` is not installed. `npm run build` passes. |
 | `F0.2` | ✅ | `types/api.ts`, `types/backend.ts` and FullCalendar. The mock data (`services/mocks.ts`) has been deleted, because the app uses real data. |
-| `F1.1` | ✅ | `api/api.js` with TanStack Query hooks for every resource, plus `usePlannerData` (all lists at once) and `usePlanStatus` (last alerts and whether the plan is out of date). |
+| `F1.1` | ✅ | `api/api.js` with TanStack Query hooks for every resource, plus `usePlannerData` (all lists at once), `usePlanCheck` (live alerts from a `dry_run` generate that saves nothing; it reloads after every save) and `usePlanStatus` (when the plan was generated and whether it is out of date, kept in `localStorage` per account). `api/api.d.ts` gives the client types. |
 | `F1.2` | ✅ | Login and register. `App.tsx` shows them until the user signs in. |
 | `F1.3` | ✅ | `TasksPage`: create, edit and delete with confirmation, progress bars, and "Log hours". |
 | `F1.4` | ✅ | `CalendarPage`: monthly view on real data, with an `EventDetails` modal. |
-| `F1.5`, `F3.3` | ✅ | `DashboardPage`: weekly calendar, day plan, `ProgressTracker`, alerts panel with suggestions, and a getting-started checklist. |
-| `F2.1` | ✅ | `SchedulePage`: commitments (recurring or one-off) and time off (day overrides). |
+| `F1.5`, `F3.3` | ✅ | `DashboardPage`: weekly calendar, day plan, `ProgressTracker`, live alerts panel with suggestions, a "No study time is left" banner, and a getting-started checklist that shows until the first plan. |
+| `F2.1` | ✅ | `SchedulePage`: commitments (recurring or one-off) and time off (day overrides). `CommitmentForm` shows how many study hours a commitment uses. `DayOverrideForm` warns while you type (already off, not a study day, date passed). After saving, it previews the impact on each deadline, with **Update my plan** or **Not now**. |
 | `F2.2` | ✅ | `SettingsForm` in a modal, opened from the navbar, dashboard and Schedule page. |
 | `F2.3` | ✅ | The "Generate plan" / "Regenerate plan" button on the dashboard. |
-| `F3.1` | 🟡 | The Tasks page does not mark at-risk projects. Alerts show on the dashboard only. A plan out of date shows a banner. |
+| `F3.1` | 🟡 | The Tasks page does not mark at-risk projects. Alerts show on the dashboard and in the time-off impact preview. A plan out of date shows an "Update needed" banner. |
 | `F3.2` | ✅ | Shared `Modal`, `ConfirmDialog` and `forms/Field`. |
-| `F4.1` | ✅ | Dashboard quick actions: "+ Add task", "+ Add commitment", "Can't study today" (a day override) and "Study hours". Each one marks the plan as out of date. |
+| `F4.1` | ✅ | Dashboard quick actions: "+ Add task", "+ Add commitment", "Can't study today" (a day override) and "Study hours". Alerts update right after each one. The study blocks move when the user regenerates. |
 | `F4.2` | 🟡 | "Mark as done" and undo in `EventDetails`. There are no "Missed" or "Lock" actions, because the backend has no such fields. A past block that is not done shows as missed. |
 | Phase 5 | ❌ | No `docs/ALGORITHM.md`, slides or rehearsal yet. |
 
@@ -110,20 +110,21 @@ The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `Pro
 | ID | Decision | Outcome |
 | --- | --- | --- |
 | `D1` | How do the components get calendar-shaped data? | **Changed: the conversion happens in the frontend** (Prompts.md entry 36). `src/lib/events.ts` turns projects, blocks, commitments and overrides into `CalendarEvent`s. It expands recurring commitments and adds deadline markers. The backend `/planner/events/` endpoint and the `useCalendarEvents` hook also exist, but nothing uses them. See `D5`. |
-| `D2` | How does the weekly progress view get its data? | **Changed: built in the frontend.** `buildWeeklySummary` in `lib/events.ts` builds it. At-risk flags come from the alerts of the last "Generate plan". `/planner/week/` and `useWeeklySummary` also exist, unused. |
+| `D2` | How does the weekly progress view get its data? | **Changed: built in the frontend.** `buildWeeklySummary` in `lib/events.ts` builds it. At-risk flags come from the live `usePlanCheck` alerts. `/planner/week/` and `useWeeklySummary` also exist, unused. |
 | `D3` | How does a "low-energy day" work? | **Done.** A `DayOverride` that blocks part or all of a day, entered with "Can't study today" or on the Schedule page. |
 | `D4` | Auth | **Done.** Basic auth for the demo. |
-| `D5` | **Open:** the backend and frontend now each have a version of the events and weekly summary logic. | Recommended: keep the frontend version, because the pages already use it. Then either delete `/planner/events/`, `/planner/week/`, `useCalendarEvents` and `useWeeklySummary`, or keep them as documented spares. Note: the server version is more accurate on two points. Its daily capacity subtracts commitments and overrides, and its at-risk flags are always current, while the client's come from the last generate and are gone after a page reload. |
+| `D5` | **Open:** the backend and frontend now each have a version of the events and weekly summary logic. | Recommended: keep the frontend version, because the pages already use it. Then either delete `/planner/events/`, `/planner/week/`, `useCalendarEvents` and `useWeeklySummary`, or keep them as documented spares. Since PR #29, the client's at-risk flags are live too. One difference remains: the server's daily capacity subtracts commitments and overrides, while `buildWeeklySummary` uses the daily limit on every work day. |
 
 ### 2.4 Known bugs and cleanup
 
 - **Fixed:** `npm run build` failed on the unused `EventItem.tsx` and `EventList.tsx`. These and the other unused files (`services/mocks.ts`, the empty `api/schedule.js` and `hooks/useSchedules.js`) are deleted. The build passes, with a warning that the bundle is larger than 500 kB.
 - **Account responses include the password hash.** `AccountSerializer` uses `fields = "__all__"`. Make `password` write only.
 - **Whole hours only:** `estimated_hours` and `completed_hours` are integers. A 45-minute block that is marked done adds 1 hour. Changing them to `DecimalField` would fix this.
-- **Alerts are gone after a reload:** `usePlanStatus` keeps them in the query cache only. The dashboard shows no alerts until the user regenerates.
+- **Fixed in PR #29:** alerts were gone after a reload. `usePlanCheck` now loads them live.
+- **Two requests per change:** every save refetches `usePlanCheck`, which runs the full planner as a dry run. This is fine for one user, but watch it if the planner gets slower.
 - **Time zone:** tzdata 2026.6 gives `America/Edmonton` a **-06:00** offset in November 2026. The backend and `lib/dates.ts` use the real zone. Do not hard-code `-07:00`, as the section 4 examples do.
 - `frontend/package.json` lists `@fullcalendar/react` twice. `backend/db.sqlite3.bak` is tracked in git. `frontend/README.md` is still the Vite template.
-- Prompts.md had duplicate entry numbers (27–29) after the PR #25 merge. Fixed in entry 38.
+- Prompts.md had duplicate entry numbers twice: 27–29 after the PR #25 merge (fixed in entry 38), and JP's PR #29 entry, numbered 36 (renumbered to 42 in entry 43). Pull `main` before adding an entry (section 7).
 
 ### 2.5 What still needs to be done, in priority order
 
@@ -131,7 +132,7 @@ The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `Pro
 2. **Rehearse the demo (`A5.1`, all):** run `seed_demo`, walk through section 8 in the browser, and fix what breaks.
 3. **`D5` (Cody and JP):** decide which version of the events and summary logic to keep, then delete the other or document it.
 4. **Security and data quality (Justin):** a write-only password, server-side validation (`B1.2`), and CRUD and permission tests in `api/tests.py` (`B2.4`).
-5. **Small UX gaps (Robin and JP):** at-risk badges on the Tasks page (`F3.1`). Keep the last alerts after a reload, for example by running a `dry_run` generate on load or by calling `/planner/week/`.
+5. **Small UX gap (Robin):** at-risk badges on the Tasks page (`F3.1`). `usePlanCheck` already has the alerts, so this is a few lines.
 6. **Phase 5:** `docs/ALGORITHM.md` (Cody), visual polish (Robin), slides and the demo script (JP), and the "Human review" fields in Prompts.md (all).
 7. **Stretch, only if 1–6 are done:** `react-router`, automatic replanning after a change (`B4.3`), decimal hours, and "Missed" and "Lock" for blocks.
 
@@ -477,12 +478,12 @@ The section 4.1 shapes differ from the real models (2.2): deadlines are dates, h
 
 Steps:
 
-1. Sign in as `demo` / `demo1234`. On the dashboard, click **Generate plan**. Study blocks fill the free time from tomorrow on, and one alert appears for Capstone report. Alerts are not saved, so generate again after any reload.
+1. Sign in as `demo` / `demo1234`. The dashboard already shows the Capstone alert, because alerts are checked live. Click **Generate plan**. Study blocks fill the free time from tomorrow on.
 2. Open the **Tasks** and **Schedule** views to show the inputs.
 3. Open the **Calendar**. Study blocks sit in the gaps around the shifts, the volunteering and the dentist. Deadlines show as markers.
 4. On the dashboard, point at the alert. It says 7 hours remain, 5 are available and 2 are missing, and it lists the suggestions.
-5. Life happens: **+ Add commitment** "Car broke down", one-off, **tomorrow 09:00 to 11:00**. The "plan out of date" banner appears. Click **Regenerate**. Capstone loses 2 more hours: the alert turns **critical**, with 3 available and 4 missing.
-6. Click **Can't study today** and choose the day the Math blocks start (T+4), for the whole day. Regenerate. The Math blocks move to later days, and Math still fits.
+5. Life happens: **+ Add commitment** "Car broke down", one-off, **tomorrow 09:00 to 11:00**. The form shows how much study time the event uses. After you save it, the alert turns **critical** at once, with 3 available and 4 missing. The "Update needed" banner appears. Click **Regenerate**, and the Capstone blocks for tomorrow disappear.
+6. Click **Can't study today** and choose the day the Math blocks start (T+4), for the whole day. After you save, the form previews the impact on each deadline: Math still fits. Click **Update my plan**. The Math blocks move to later days.
 7. Click a study block and choose **Mark as done**. The project's progress bar moves.
 8. Close with one sentence on EDF and point at `Prompts.md` for AI transparency.
 
