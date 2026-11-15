@@ -191,7 +191,7 @@ function App() {
               >
                 A study plan that{" "}
                 <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  makes room for life.
+                  adapts to YOU.
                 </span>
               </h1>
 
