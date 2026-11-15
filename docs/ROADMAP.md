@@ -12,8 +12,10 @@ Each task has an ID (for example `B1.2` or `F2.1`). Use the ID in branch names, 
 
 | Person | Side | Owns |
 | --- | --- | --- |
-| Justin | Backend | Django setup, `accounts`, `projects` and `schedules` apps, CRUD API, demo seed data |
-| Cody | Backend | `planner` app: scheduling algorithm, feasibility alerts, replanning, calendar and dashboard endpoints |
+| Justin | Backend | Django setup, models, CRUD API, auth, demo seed data |
+| Cody | Backend | Scheduling algorithm (`api/scheduler.py`), feasibility alerts, replanning, calendar and dashboard endpoints |
+
+> The team chose **one Django app** (`backend/api/`) instead of the four apps first planned. Accounts, projects, schedules and the planner all live in `api/models.py`, `api/views.py` and `api/urls.py`.
 | Robin | Frontend | Tailwind and daisyUI setup, routing and layout, API client, login, task, commitment and settings pages |
 | JP | Frontend | Shared TypeScript types and mock data, calendar view, weekly dashboard, alerts panel, block actions |
 
@@ -28,21 +30,99 @@ The work splits into two pairs. Each pair shares one part of the API, so each pa
 
 ## 2. Current state of the repo (2026-11-14)
 
-The repo has a scaffold, but nothing runs end to end yet. The team found these gaps:
+Checked against `main` after PR #21.
 
-| Area | Gap | Fixed in |
+**Summary:** the backend works. You can sign up, store data and generate a plan, and all 16 backend tests pass. The frontend has a login flow, data hooks and calendar components, but the app shell does not show them yet, and `npm run build` fails. **Nothing runs end to end in the browser yet.** The biggest risk is the gap between the planned contract (section 4) and the real backend.
+
+### 2.1 Status by task
+
+✅ done · 🟡 partly done or done differently · ❌ not started
+
+| ID | Status | Notes |
 | --- | --- | --- |
-| Backend | Each `apps.py` sets `name = 'accounts'` (and so on). Because the apps live in `backend/apps/`, the name must be `'apps.accounts'`. | `B0.1` |
-| Backend | `apps/schedules/apps.py` has class `ScheduleConfig` with `name = 'schedule'`. The folder is `schedules`. | `B0.1` |
-| Backend | `INSTALLED_APPS` does not list `rest_framework`, `corsheaders` or the four project apps. | `B0.1` |
-| Backend | There are no CORS rules and no `api/` route in `config/urls.py`. | `B0.1` |
-| Backend | `TIME_ZONE` is `'UTC'`. | `B0.1` |
-| Backend | All four `models.py` files are empty. | `B1.1`, `B1.6` |
-| Frontend | `src/` holds the Vite demo page only. | `F0.1` |
-| Frontend | Tailwind and daisyUI are not installed. | `F0.1` |
-| Frontend | The `src/` subfolders in the README (`components/`, `pages/`, `services/` and so on) do not exist. | `F0.1` |
+| `B0.1` | ✅ | DRF, `corsheaders` (`CORS_ALLOW_ALL_ORIGINS = True`), `TIME_ZONE = "America/Edmonton"` and the `api/v1/` route are set. Auth is DRF **Basic auth**, not token auth (see 2.2). |
+| `B0.2` | ✅ | Built as `backend/api/scheduler.py` (no Django imports) instead of `engine.py`. |
+| `B1.1` | 🟡 | Models exist: `Account`, `Project`, `Commitment`, `PlannerSettings`, `DayOverride`, `StudyBlock`. All are in Django admin. Field names and types differ from section 4.1 (see 2.2). |
+| `B1.2` | 🟡 | A viewset for each model, filtered by `request.user`. The section 4.1 rules are **not** enforced: `completed_hours ≤ estimated_hours`, `end_time > start_time`, and one settings row per user. |
+| `B1.3` | 🟡 | Sign up is `POST /api/v1/accounts/` and the current user is `GET /api/v1/accounts/me/`. There is no login or token endpoint: the frontend checks credentials by calling `me`. Sign up does not create `PlannerSettings`, but the frontend hook creates it on the first save. |
+| `B1.4` | ❌ | No `seed_demo` command. `backend/api/management/` does not exist. |
+| `B1.5` | ✅ | `_free_days` in `scheduler.py`. |
+| `B1.6` | ✅ | `StudyBlock` uses `date`, `start_time`, `end_time` and `completed`. It has no `status` or `locked` field. |
+| `B2.1` | ✅ | EDF placement with tests in `api/test_scheduler.py`. |
+| `B2.2` | ✅ | `POST /api/v1/planner/generate/` takes `now` and `dry_run`, and returns `{ now, blocks, alerts }`. |
+| `B2.3` | 🟡 | `GET /api/v1/study-blocks/?date=` filters by one date only, with no `start`/`end` range. `/planner/events/` (section 4.3), which expands recurring commitments, does **not** exist. |
+| `B2.4` | 🟡 | `test_scheduler.py` covers `generate`, including that users only see their own data. `api/tests.py` is empty: there are no CRUD or permission tests for the other endpoints. |
+| `B2.5` | ❌ | Depends on `B1.4`. |
+| `B3.1` | ✅ | Alerts with suggestions. The README example test passes. |
+| `B3.2` | ❌ | No `/planner/alerts/` or `/planner/week/`. Alerts come back from `generate` only. |
+| `B3.3` | ❌ | No `progress/` endpoint. A client can still `PATCH` `completed_hours`, but nothing sets `status` to `completed`. |
+| `B4.1` | 🟡 | `PATCH /study-blocks/{id}/` with `completed` works. It does not add hours to the project, and there is no "missed" or "locked" state. |
+| `B4.2` | 🟡 | Calling `generate` again works as a replan: it keeps completed blocks and blocks that have started. There is no separate `replan(user)` service. |
+| `B4.3` | ❌ | Changes to data do not trigger a replan. The frontend must call `generate`. |
+| `F0.1` | ❌ | **Blocks every other frontend task.** Tailwind, daisyUI and `react-router` are not installed. `App.tsx` is still the Vite demo page behind a login check. The components already use Tailwind classes, which have no effect right now. |
+| `F0.2` | ✅ | `types/api.ts` (planned contract), `services/mocks.ts`, FullCalendar v7. `date-fns` is not installed. There is also `types/backend.ts`, which matches the real backend. |
+| `F1.1` | 🟡 | Done differently: `src/api/api.js` (fetch wrapper with Basic auth in `sessionStorage`) and TanStack Query hooks in `src/hooks/` for every resource, plus `useGeneratePlan`. There is no `VITE_USE_MOCKS` switch. |
+| `F1.2` | 🟡 | `LoginPage` and `RegisterPage` work. `App.tsx` switches between them with state, with no route guard. |
+| `F1.3` | ❌ | No Tasks (Projects) page. `useProjects` is ready to use. |
+| `F1.4` | 🟡 | `CalendarPage` and `MonthlyCalendar` work on mock data. `App.tsx` does not show them. |
+| `F1.5` | 🟡 | `DashboardPage` shows `WeeklyCalendar` on mock data. `PlanForDay` and `ProgressTracker` exist but are not on the page. There is no alerts panel. |
+| `F2.1` | ❌ | No Schedule (commitments) page. `useCommitments` is ready. `hooks/useSchedules.js` is an empty file. |
+| `F2.2` | ❌ | No Settings page. `usePlannerSettings` is ready. |
+| `F2.3` | ❌ | The calendar uses mock data only. There is no "Generate plan" button. |
+| `F3.x`, `F4.x` | ❌ | Not started. |
+| Phase 5 | ❌ | Not started. This README update covers part of `B5.1`. |
 
-`requirements.txt` already lists Django, Django REST Framework (DRF) and `django-cors-headers`.
+### 2.2 The real backend differs from the contract in section 4
+
+The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `ProgressTracker`) use the section 4 shapes in `types/api.ts`. The API returns the shapes in `types/backend.ts`. **The team must pick one fix now** (decision `D1` in 2.3).
+
+| Planned (section 4) | Real backend (`api/models.py`) |
+| --- | --- |
+| Token auth, `/auth/register/`, `/auth/login/`, `/auth/me/` | Basic auth, `POST /accounts/`, `GET /accounts/me/` |
+| Route prefix `/api/` | `/api/v1/` |
+| `Task` at `/tasks/` | `Project` at `/projects/` |
+| `deadline` is a datetime | `deadline` is a date |
+| Hours are decimals | `estimated_hours` and `completed_hours` are integers |
+| `priority` 1 (high) to 3 (low) | `priority` 0 to 10, higher means more important |
+| `status`: `todo`, `in_progress`, `done` | `incompleted`, `in_progress`, `completed`, `skipped` |
+| `color`, any hex | `colour`, one of 9 preset hex values |
+| `Commitment.kind` | Removed in migration `0003` |
+| `recurring`, `weekdays` as a list, `active_until` | `recuring` (misspelled), `weekdays` as text `"0,2,4"`, `active_to` |
+| `/settings/`, one row with defaults | `/planner-settings/`, a list. A user can have 0 or more rows. Fields are `day_start_time` and `day_end_time`, and `work_days` is text. Empty values fall back to the scheduler defaults. |
+| `DayOverride.max_hours` lowers the capacity of a day | `DayOverride` has `start_time` and `end_time` and **blocks that time**. With no times, it blocks the whole day. You cannot express "only 2 hours today". |
+| `StudyBlock` with `start`/`end` datetimes, `status`, `locked` | `date`, `start_time`, `end_time`, `completed` |
+| `/planner/blocks/`, `/planner/events/`, `/planner/alerts/`, `/planner/week/` | `/study-blocks/` only. Alerts come back from `generate`. |
+
+### 2.3 Decisions to make now
+
+| ID | Decision | Recommended |
+| --- | --- | --- |
+| `D1` | How do the components get the data they expect? | Keep the backend models as they are. Cody adds `GET /api/v1/planner/events/?start=&end=` that returns the section 4.3 `CalendarEvent` shape, with recurring commitments expanded. The calendar components then work as they are. Pages that edit data use `types/backend.ts`. |
+| `D2` | How does the weekly progress view get its data? | Either Cody adds `/planner/week/` (section 4.4) or JP computes it on the client from `/projects/` and `/study-blocks/`. The endpoint is cleaner. The client version needs no backend work. |
+| `D3` | How does a "low-energy day" work? | Model it as a `DayOverride` that blocks part of the day, for example 13:00 to 19:00. This needs no backend change. Otherwise add `max_hours` to `DayOverride`. |
+| `D4` | Auth | Keep Basic auth for the demo. It already works end to end. |
+
+### 2.4 Known bugs and cleanup
+
+- `npm run build` fails: `components/EventItem.tsx` and `components/EventList.tsx` have untyped props (TS7031). Both are unused and read `event.project.colour`, which does not exist. Delete them or give them types.
+- `frontend/package.json` lists `@fullcalendar/react` twice.
+- `frontend/src/hooks/useSchedules.js` is empty.
+- `backend/db.sqlite3.bak` is tracked in git. `*.sqlite3` is ignored, but `.bak` is not.
+- `frontend/README.md` is still the Vite template.
+- `api/serializers.py` uses `fields = "__all__"` for `Account`, so the password hash is in API responses. Make `password` write only.
+
+### 2.5 What still needs to be done, in priority order
+
+These are the tasks the demo in section 8 depends on. Do them in this order.
+
+1. **`F0.1` (Robin):** install Tailwind and daisyUI and `react-router`. Replace the Vite demo in `App.tsx` with a layout, a navbar and routes for `/dashboard`, `/calendar`, `/tasks`, `/schedule` and `/settings`. Fix the build (2.4).
+2. **`D1` and `B2.3` (Cody):** `/planner/events/` endpoint. **`F2.3` (JP):** connect the calendar and dashboard to it, and add a "Generate plan" button that uses `useGeneratePlan`.
+3. **`F1.3`, `F2.1` and `F2.2` (Robin):** Projects, Commitments and Settings pages on the existing hooks.
+4. **`F3.3` (JP):** an alerts panel that shows the `alerts` from `generate`. Put `PlanForDay` and `ProgressTracker` on the dashboard (`D2`).
+5. **`B1.4` and `B4.4` (Justin):** `seed_demo` with the section 8 data, adjusted to the real models (date deadlines, whole hours, `DayOverride` as blocked time).
+6. **`B1.2`, `B2.4` and `B3.3` (Justin):** validation, CRUD and permission tests in `api/tests.py`. When `completed_hours` reaches `estimated_hours`, set `status` to `completed`.
+7. **`B4.1` (Cody) and `F4.1`/`F4.2` (Robin, JP):** marking a block done adds its hours to the project. "Life happens" actions call `generate` after each change.
+8. **Phase 5:** `docs/ALGORITHM.md`, polish, slides, demo rehearsal.
 
 ---
 
@@ -63,6 +143,8 @@ The team makes these choices together before people split up. The recommended op
 ---
 
 ## 4. Shared API contract
+
+> **Note (2026-11-14):** this is the contract the team **planned**. The real backend differs. Section 2.2 lists the differences, and `frontend/src/types/backend.ts` has the real shapes. Until the team settles decision `D1`, use `types/backend.ts` for anything that reads or writes the API.
 
 Everyone codes against this contract from the start. The frontend uses mock data that matches it until the real endpoints exist. If you change the contract, update this section and tell your pair in the team chat.
 
@@ -307,6 +389,8 @@ Checkpoint 4 (about hour 22): feature freeze. After this point, merge bug fixes 
 ---
 
 ## 6. Scheduling algorithm (Cody)
+
+> **Status:** built in `backend/api/scheduler.py` and called from `GeneratePlanView` in `api/views.py`. Differences from the plan below: priority is sorted with higher numbers first (0 to 10). Day overrides block time instead of setting `max_hours`. A project with no deadline fills time up to 14 days ahead.
 
 The MVP uses earliest deadline first (EDF): work on the task that is due soonest. For one person who can split work into blocks, EDF is a known optimal rule. If EDF cannot meet a deadline, no other order can meet it either. This gives the feasibility alert a solid base.
 
