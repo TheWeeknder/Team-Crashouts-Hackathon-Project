@@ -25,28 +25,16 @@ const navigation: { id: AppView; label: string }[] = [
 
 const features = [
   {
-    number: "01",
     title: "Plan around your life",
-    description:
-      "Bring deadlines, work shifts, activities, and personal time into one study plan.",
+    description: "Deadlines, shifts and activities in one plan.",
   },
   {
-    number: "02",
-    title: "See your next steps",
-    description:
-      "Use monthly and weekly views to see when to study and what to work on.",
+    title: "Know what's next",
+    description: "Weekly and monthly views of when to study.",
   },
   {
-    number: "03",
-    title: "Track your progress",
-    description:
-      "Compare completed hours with task estimates and keep your remaining work visible.",
-  },
-  {
-    number: "04",
-    title: "Spot problems early",
-    description:
-      "The planner is designed to flag deadlines at risk and adjust when your availability changes.",
+    title: "Catch problems early",
+    description: "See which deadlines are at risk, and why.",
   },
 ];
 
@@ -195,166 +183,52 @@ function App() {
 
       <main id="planner-content" className="flex-1">
         {activeView === "overview" && (
-          <div className="mx-auto max-w-7xl space-y-16 px-4 py-10 sm:py-16">
-            <section
-              className="grid items-center gap-10 lg:grid-cols-[1.3fr_1fr]"
-              aria-labelledby="planner-hero-title"
-            >
-              <div>
-                <span className="badge badge-primary badge-soft font-medium">
-                  Hack-A-Ton · Education / Wildcard
-                </span>
-
-                <h1
-                  id="planner-hero-title"
-                  className="mt-5 text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl"
-                >
-                  A study plan that{" "}
-                  <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    makes room for life.
-                  </span>
-                </h1>
-
-                <p className="mt-5 max-w-xl text-lg text-base-content/70">
-                  Balance deadlines with work, activities, and time for
-                  yourself. Adaptive Study Planner brings your commitments
-                  and study sessions together so you can focus on what comes
-                  next.
-                </p>
-
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-lg"
-                    onClick={() => setActiveView("dashboard")}
-                  >
-                    Open dashboard
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline btn-lg"
-                    onClick={() => setActiveView("calendar")}
-                  >
-                    View calendar
-                  </button>
-                </div>
-              </div>
-
-              <aside
-                className="card border border-base-300 bg-base-100 shadow-xl"
-                aria-labelledby="planner-example-title"
+          <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:py-24">
+            <section aria-labelledby="planner-hero-title">
+              <h1
+                id="planner-hero-title"
+                className="text-4xl font-extrabold tracking-tight sm:text-5xl"
               >
-                <div className="card-body gap-4">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-                    How it helps
-                  </p>
-                  <h2 id="planner-example-title" className="card-title text-2xl">
-                    Know when a deadline needs attention.
-                  </h2>
-                  <p className="text-sm text-base-content/60">
-                    Illustrative example, not your account data.
-                  </p>
-
-                  <dl className="stats stats-horizontal border border-base-300 bg-base-200/50">
-                    <div className="stat">
-                      <dt className="stat-title">Work remaining</dt>
-                      <dd className="stat-value text-primary">7 hrs</dd>
-                    </div>
-                    <div className="stat">
-                      <dt className="stat-title">Available time</dt>
-                      <dd className="stat-value text-secondary">5 hrs</dd>
-                    </div>
-                  </dl>
-
-                  <div role="alert" className="alert alert-warning alert-soft items-start">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="size-6 shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
-                      />
-                    </svg>
-                    <div>
-                      <h3 className="font-bold">2-hour shortfall</h3>
-                      <p className="text-sm">
-                        Identify the gap early, then adjust your
-                        availability, priorities, or project scope.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </aside>
-            </section>
-
-            <section aria-labelledby="planner-features-title">
-              <div className="mx-auto max-w-2xl text-center">
-                <p className="text-sm font-semibold uppercase tracking-wider text-primary">
-                  Built for busy students
-                </p>
-                <h2
-                  id="planner-features-title"
-                  className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl"
-                >
-                  Less time organizing. More time making progress.
-                </h2>
-                <p className="mt-4 text-base-content/70">
-                  Our goal is to turn deadlines and real-life constraints
-                  into a manageable study timetable.
-                </p>
-              </div>
-
-              <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                {features.map((feature) => (
-                  <article
-                    key={feature.number}
-                    className="card border border-base-300 bg-base-100 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-                  >
-                    <div className="card-body">
-                      <span
-                        className="grid size-11 place-items-center rounded-xl bg-primary/10 text-sm font-bold text-primary"
-                        aria-hidden="true"
-                      >
-                        {feature.number}
-                      </span>
-                      <h3 className="card-title mt-2 text-lg">{feature.title}</h3>
-                      <p className="text-sm text-base-content/70">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-
-            <section
-              className="card bg-gradient-to-r from-primary to-secondary text-primary-content shadow-xl"
-              aria-labelledby="planner-project-note-title"
-            >
-              <div className="card-body flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                <div>
-                  <h2
-                    id="planner-project-note-title"
-                    className="text-2xl font-bold"
-                  >
-                    Built by Team Crashouts
-                  </h2>
-                  <p className="mt-1 opacity-90">
-                    A Hack-A-Ton project exploring a more adaptable approach
-                    to student time management.
-                  </p>
-                </div>
-                <span className="badge badge-lg border-0 bg-base-100/20 font-medium text-primary-content">
-                  Hackathon prototype
+                A study plan that{" "}
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  makes room for life.
                 </span>
+              </h1>
+
+              <p className="mx-auto mt-5 max-w-xl text-lg text-base-content/70">
+                Add your deadlines and commitments. We'll find the time to
+                study and warn you early if something won't fit.
+              </p>
+
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-lg"
+                  onClick={() => setActiveView("dashboard")}
+                >
+                  Open dashboard
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-lg"
+                  onClick={() => setActiveView("calendar")}
+                >
+                  View calendar
+                </button>
               </div>
+            </section>
+
+            <section aria-label="Features" className="mt-20">
+              <ul className="grid gap-8 text-left sm:grid-cols-3 sm:gap-6">
+                {features.map((feature) => (
+                  <li key={feature.title} className="border-l-2 border-primary/40 pl-4">
+                    <h2 className="font-semibold">{feature.title}</h2>
+                    <p className="mt-1 text-sm text-base-content/60">
+                      {feature.description}
+                    </p>
+                  </li>
+                ))}
+              </ul>
             </section>
           </div>
         )}

@@ -56,7 +56,7 @@ This file records every use of AI tools on this project, for transparency with t
 - **Output / changes:**
   - Created `docs/ROADMAP.md`: owners and pairs, gaps in the current scaffold, first-hour decisions, a shared API contract (models, endpoints, JSON shapes), six phases with task IDs and checkpoints, the scheduling algorithm steps, Git rules, a demo script with seed data, stretch goals and risks.
   - Added a link to `docs/ROADMAP.md` in the README roadmap section.
-- **Human review:** _TBD_
+- **Human review:** JP
 
 ### 4. Commit the roadmap
 
@@ -348,7 +348,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Used by:** JP
 - **Prompt:** "Hello claude, please analyze my entire codebase, especially the frontend, and make sure everything is currently working properly. do not write any code right now, simply tell me any mistakes and obstacles."
 - **Output / changes:** Read-only review. Ran `tsc -b`, `eslint`, `vite build`, `manage.py check`, `makemigrations --check` and `manage.py test`, then reported problems: styling not wired up (App.css was still the Vite template, Tailwind not installed), dashboard and calendar still on mock data, frontend and backend data shapes don't match, `/accounts/me/` returns the password hash, `db.sqlite3.bak` committed, no tests. No files changed.
-- **Human review:** _TBD_
+- **Human review:** JP
 
 ### 28. Tailwind CSS + daisyUI styling pass
 
@@ -364,7 +364,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
   - Switched `PlanForDay`, `ProgressTracker`, `MonthlyCalendar` and `WeeklyCalendar` to theme colours so dark mode works; the calendars now always use white event text.
   - `main.tsx`: sets a `data-color-scheme` attribute on `<html>` from the OS dark-mode setting, so FullCalendar's dark palette turns on with daisyUI's.
   - Checked with `tsc -b`, `eslint` and `vite build`, plus headless-browser screenshots of every page in light, dark and mobile against a mock API.
-- **Human review:** _TBD_
+- **Human review:** JP
 
 ### 29. Restore App.css to fix a merge conflict
 
@@ -373,7 +373,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Used by:** JP
 - **Prompt:** "on github it is saying that I have a conflict happening on app.css because i forgot to pull before a push. could you revert whatever chances you made in app.css temporarily? and also do not add the ai usage prompt on prompt.md for now, we will do that later to prevent conflicts too."
 - **Output / changes:** Restored `frontend/src/App.css` to its version from before entry 28. `main` had edited the file while this branch deleted it. Ran a test merge against `origin/main` to confirm no conflicts were left. Held back the `Prompts.md` entries until now (this entry and the next three).
-- **Human review:** _TBD_
+- **Human review:** JP
 
 ### 30. Commit and push the App.css fix
 
@@ -382,7 +382,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Used by:** JP
 - **Prompt:** "yes please"
 - **Output / changes:** Committed the restored `App.css` (`9098d0a`) and pushed it to `jp-apptsx-branch`. That branch was later merged in PR #23.
-- **Human review:** _TBD_
+- **Human review:** JP
 
 ### 31. Add the held-back AI usage entries
 
@@ -391,7 +391,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Used by:** JP
 - **Prompt:** "i am ready to add the ai usage entries"
 - **Output / changes:** Fast-forwarded `jp-apptsx-branch` to `origin/main` so the numbering would not conflict, then added entries 27–31 to `Prompts.md`.
-- **Human review:** _TBD_
+- **Human review:** JP
 
 ### 27. Implement the roadmap 2.3 decisions
 
@@ -449,7 +449,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Used by:** JP
 - **Prompt:** "i committed and pushed it myself. right now the pages, components, and seeded data looks good. but there are no areas where we can input our own schedules, tasks, deadlines, and such. could you figure out a way we could squeeze it in? would inputs be integrated within the dashboard? do not code anything on the backend and frontend yet. lets verify"
 - **Output / changes:** Read-only planning. Proposed new Tasks and Schedule pages, quick-add dialogs on the dashboard, planner settings in the avatar menu, a setup checklist for new accounts, and form fields mapped to the backend models. Flagged that the calendar and dashboard still showed mock data. No files changed.
-- **Human review:** _TBD_
+- **Human review:** JP
 
 ### 33. Build the input forms and connect the app to real data
 
@@ -464,7 +464,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
   - New `lib/` helpers: `events.ts` (backend records to calendar events and the weekly summary, including deadlines as all-day events), `dates.ts`, `formErrors.ts`, `progress.ts`, `taskOptions.ts`. New hooks `usePlannerData` and `usePlanStatus`.
   - Updated `PlanForDay`, `ProgressTracker`, `MonthlyCalendar`, `WeeklyCalendar` and `types/api.ts`: local time zone instead of a hardcoded one, nullable `kind`, a new deadline event type, per-event text colour, and a fix for horizontal overflow on phones.
   - No backend changes. Checked with `tsc`, `eslint`, `vite build`, and a browser test of the full flow against the real Django API on a throwaway database.
-- **Human review:** _TBD_
+- **Human review:** JP
 
 ### 34. Commit, push and log the input forms work
 
@@ -473,7 +473,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Used by:** JP
 - **Prompt:** "please commit and push this, and I am ready for you to add the entry for this work"
 - **Output / changes:** Committed the frontend work (`7870f12`) and merged `origin/main` into `jp-apptsx-branch`. Resolved conflicts in `PlanForDay.tsx`, `CalendarPage.tsx` and `types/api.ts` by keeping this branch's versions, which already included main's `kind`-can-be-null fix. Re-ran the checks, the 26 backend tests and the browser test on the merged code. Added entries 32–34 and pushed.
-- **Human review:** _TBD_
+- **Human review:** JP
 
 ### 36. Fix the overload, alert and suggestion problems
 
@@ -489,4 +489,13 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
   - `backend/api/scheduler.py`: alert suggestions count only days that still have free time, give a clear message when no study time is left, and suggest a higher daily limit only when the limit is what blocks the work (with how much it would help). Added 4 tests to `test_scheduler.py`; all 30 backend tests pass.
   - Added `api/api.d.ts` and the `localNow` type in `useGeneratePlan.d.ts`, so TypeScript files can import them.
   - Checked with `tsc`, `eslint`, `vite build`, the backend tests, and a 33-check browser test against the real API on a throwaway database (validation on every form, edit, delete, undo, one-time events, partial time off, the impact step, overload, and alerts after reload).
-- **Human review:** _TBD_
+- **Human review:** JP
+
+### 37. Make the overview less busy
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** JP
+- **Prompt:** "could you make the overview look less busy?"
+- **Output / changes:** `App.tsx`: the overview is now a centred headline, one sentence and two buttons, then three short features without borders. Removed the event badge, the "How it helps" example card, the section labels, the four numbered feature cards and the gradient banner. Checked with `tsc`, `eslint`, and screenshots in light, dark and phone width.
+- **Human review:** JP
