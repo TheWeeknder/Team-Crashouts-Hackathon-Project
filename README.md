@@ -66,6 +66,8 @@ Team-Crashouts-Hackathon-Project/
 │   │   ├── urls.py
 │   │   ├── scheduler.py         # EDF planning algorithm (plain Python, no Django)
 │   │   ├── test_scheduler.py    # Planner and planner endpoint tests
+│   │   ├── test_seed_demo.py    # Demo data and demo script tests
+│   │   ├── management/commands/seed_demo.py  # Demo account (ROADMAP section 8)
 │   │   └── migrations/
 │   └── requirements.txt
 ├── frontend/                    # React + TypeScript client
@@ -97,10 +99,11 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py createsuperuser   # optional, for /admin/
 python manage.py runserver         # http://127.0.0.1:8000
-python manage.py test api          # 26 tests
+python manage.py seed_demo         # demo account: demo / demo1234 (resets on each run)
+python manage.py test api          # 30 tests
 ```
 
-There is no demo seed command yet (`seed_demo`, see the roadmap). Create a user through the sign-up page, `POST /api/v1/accounts/` or the Django admin.
+`seed_demo` creates a student with shifts, classes and three projects, with dates relative to today. After you click **Generate plan**, one project shows the "7 hours left, only 5 free" alert. Run it again right before a demo to reset the account. Options: `--password`, `--username`, `--today YYYY-MM-DD`. You can also create your own user through the sign-up page.
 
 ### Frontend (React)
 
@@ -112,11 +115,11 @@ npm run dev                        # http://localhost:5173
 
 The frontend calls `http://127.0.0.1:8000/api/v1/` by default. To change it, set `VITE_API_URL` in `frontend/.env`.
 
-> **Known issue:** `npm run build` fails on type errors in two unused components, `EventItem.tsx` and `EventList.tsx`. `npm run dev` still works. Delete both files to fix the build.
+`npm run build` creates a production build in `frontend/dist/`.
 
 ### Using the app
 
-1. Start both servers, open http://localhost:5173 and register.
+1. Start both servers and open http://localhost:5173. Sign in as `demo` / `demo1234` (after `seed_demo`), or register.
 2. On the **Dashboard**, follow the getting-started checklist:
    - Add tasks (projects) with a deadline and an hour estimate.
    - Add commitments such as shifts and practices.
@@ -154,7 +157,9 @@ See [docs/ROADMAP.md](docs/ROADMAP.md), section 2, for the status of each task, 
 - [x] Sign up and login (Basic auth)
 - [x] Scheduling algorithm: earliest deadline first, with breaks, block sizes and a daily limit
 - [x] Feasibility alerts with suggestions
-- [x] Backend tests for the planner and its endpoints (26 passing)
+- [x] Backend tests for the planner, its endpoints and the demo data (30 passing)
+- [x] `seed_demo` command with the demo data
+- [x] `npm run build` passes
 - [x] App shell with Tailwind + daisyUI, light and dark mode, and mobile layout
 - [x] Tasks, Schedule (commitments and time off) and Settings forms
 - [x] Dashboard: weekly calendar, day plan, progress tracker, alerts panel, "Generate plan" and quick actions
@@ -163,8 +168,6 @@ See [docs/ROADMAP.md](docs/ROADMAP.md), section 2, for the status of each task, 
 
 **Still to do** (in priority order; details in roadmap section 2.5)
 
-- [ ] Fix `npm run build`: delete the unused `EventItem.tsx` and `EventList.tsx`
-- [ ] `seed_demo` command with the demo data
 - [ ] Rehearse the demo script on a fresh database
 - [ ] Pick one version of the calendar events and summary logic, frontend or backend (roadmap `D5`)
 - [ ] Hide the password hash in account responses; server-side validation; CRUD and permission tests

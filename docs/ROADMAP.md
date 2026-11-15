@@ -38,7 +38,7 @@ Checked against `main` after PR #26 (`6c7d008`).
 - see alerts for projects that don't fit
 - mark sessions done, which updates project progress
 
-All 26 backend tests pass. What's left: there is no demo seed data, `npm run build` still fails on two unused files, the plan does not update itself after a change (the user clicks "Regenerate"), and Phase 5 polish and pitch work has not started.
+All 30 backend tests pass, and `npm run build` passes. `python manage.py seed_demo` creates the demo account. What's left: the plan does not update itself after a change (the user clicks "Regenerate"), the demo has not been rehearsed, and Phase 5 polish and pitch work has not started.
 
 ### 2.1 Status by task
 
@@ -53,11 +53,11 @@ All 26 backend tests pass. What's left: there is no demo seed data, `npm run bui
 | `B1.1` | 🟡 | All six models exist and are in Django admin. Field names and types differ from section 4.1 (see 2.2). |
 | `B1.2` | 🟡 | A viewset for each model, scoped to `request.user`. The section 4.1 rules are **not** enforced on the server: `completed_hours ≤ estimated_hours`, `end_time > start_time`, one settings row per user. The frontend forms check some of these. |
 | `B1.3` | 🟡 | Sign up is `POST /accounts/`, and the current user is `GET /accounts/me/`. There is no token or login endpoint. |
-| `B1.4`, `B2.5`, `B4.4` | ❌ | No `seed_demo` command. The demo data must be entered by hand. |
+| `B1.4`, `B2.5`, `B4.4` | ✅ | `python manage.py seed_demo` creates or resets the `demo` account with the section 8 data (`api/management/commands/seed_demo.py`). Tests in `api/test_seed_demo.py` check the 7 / 5 / 2 alert on several weekdays and times, and demo steps 5 and 6. |
 | `B1.6` | ✅ | `StudyBlock` (`date`, `start_time`, `end_time`, `completed`). It has no `missed` or `locked` field. |
 | `B2.2` | ✅ | `POST /planner/generate/`. It snapshots the blocks it replaces and converts a `now` with an offset to Edmonton time. |
 | `B2.3`, `B3.2` | 🟡 | `/planner/events/` and `/planner/week/` exist and are tested, but **the frontend does not use them**. It builds the same data in `lib/events.ts` (see `D1`). There is no `/planner/alerts/`. |
-| `B2.4` | 🟡 | `test_scheduler.py` has 26 tests for the planner and its endpoints. `api/tests.py` is empty: there are no CRUD or permission tests for the other endpoints. |
+| `B2.4` | 🟡 | 30 tests: `test_scheduler.py` (planner and its endpoints) and `test_seed_demo.py`. `api/tests.py` is empty: there are no CRUD or permission tests for the other endpoints. |
 | `B3.3` | 🟡 | There is no `progress/` endpoint. The frontend `PATCH`es `completed_hours` and `status` itself (`lib/progress.ts`). |
 | `B4.1` | 🟡 | Marking a block done works. The frontend also adds the block's hours to the project, rounded to whole hours, because `completed_hours` is an integer. |
 | `B4.2`, `B4.3` | 🟡 | `generate` works as a replan. Nothing replans automatically: after a change, the frontend marks the plan as out of date and asks the user to regenerate. |
@@ -66,8 +66,8 @@ All 26 backend tests pass. What's left: there is no demo seed data, `npm run bui
 
 | ID | Status | Notes |
 | --- | --- | --- |
-| `F0.1` | 🟡 | Tailwind, daisyUI, navbar and views: Overview, Dashboard, Calendar, Tasks and Schedule. Views switch through state in `App.tsx`, because `react-router` is not installed. **`npm run build` fails** (2.4). |
-| `F0.2` | ✅ | `types/api.ts`, `types/backend.ts` and FullCalendar. `services/mocks.ts` is no longer used. |
+| `F0.1` | 🟡 | Tailwind, daisyUI, navbar and views: Overview, Dashboard, Calendar, Tasks and Schedule. Views switch through state in `App.tsx`, because `react-router` is not installed. `npm run build` passes. |
+| `F0.2` | ✅ | `types/api.ts`, `types/backend.ts` and FullCalendar. The mock data (`services/mocks.ts`) has been deleted, because the app uses real data. |
 | `F1.1` | ✅ | `api/api.js` with TanStack Query hooks for every resource, plus `usePlannerData` (all lists at once) and `usePlanStatus` (last alerts and whether the plan is out of date). |
 | `F1.2` | ✅ | Login and register. `App.tsx` shows them until the user signs in. |
 | `F1.3` | ✅ | `TasksPage`: create, edit and delete with confirmation, progress bars, and "Log hours". |
@@ -117,7 +117,7 @@ The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `Pro
 
 ### 2.4 Known bugs and cleanup
 
-- **`npm run build` fails:** `components/EventItem.tsx` and `components/EventList.tsx` have untyped props (TS7031). Both are unused. Delete them. Also unused: `services/mocks.ts`, `api/schedule.js` and the empty `hooks/useSchedules.js`.
+- **Fixed:** `npm run build` failed on the unused `EventItem.tsx` and `EventList.tsx`. These and the other unused files (`services/mocks.ts`, the empty `api/schedule.js` and `hooks/useSchedules.js`) are deleted. The build passes, with a warning that the bundle is larger than 500 kB.
 - **Account responses include the password hash.** `AccountSerializer` uses `fields = "__all__"`. Make `password` write only.
 - **Whole hours only:** `estimated_hours` and `completed_hours` are integers. A 45-minute block that is marked done adds 1 hour. Changing them to `DecimalField` would fix this.
 - **Alerts are gone after a reload:** `usePlanStatus` keeps them in the query cache only. The dashboard shows no alerts until the user regenerates.
@@ -127,14 +127,13 @@ The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `Pro
 
 ### 2.5 What still needs to be done, in priority order
 
-1. **Fix the build (anyone, 5 minutes):** delete the unused files in 2.4 so that `npm run build` passes.
-2. **`B1.4` and `B4.4` (Justin):** `python manage.py seed_demo` with the section 8 data, adjusted to the real models: date deadlines, whole hours, and "Car broke down" as a `DayOverride` or a one-off commitment. Without it, every demo starts from an empty account.
-3. **Rehearse the demo (`A5.1`, all):** walk through section 8 on a fresh database, and fix what breaks.
-4. **`D5` (Cody and JP):** decide which version of the events and summary logic to keep, then delete the other or document it.
-5. **Security and data quality (Justin):** a write-only password, server-side validation (`B1.2`), and CRUD and permission tests in `api/tests.py` (`B2.4`).
-6. **Small UX gaps (Robin and JP):** at-risk badges on the Tasks page (`F3.1`). Keep the last alerts after a reload, for example by running a `dry_run` generate on load or by calling `/planner/week/`.
-7. **Phase 5:** `docs/ALGORITHM.md` (Cody), visual polish (Robin), slides and the demo script (JP), and the "Human review" fields in Prompts.md (all).
-8. **Stretch, only if 1–7 are done:** `react-router`, automatic replanning after a change (`B4.3`), decimal hours, and "Missed" and "Lock" for blocks.
+1. ~~Fix the build~~ and ~~`seed_demo`~~: done.
+2. **Rehearse the demo (`A5.1`, all):** run `seed_demo`, walk through section 8 in the browser, and fix what breaks.
+3. **`D5` (Cody and JP):** decide which version of the events and summary logic to keep, then delete the other or document it.
+4. **Security and data quality (Justin):** a write-only password, server-side validation (`B1.2`), and CRUD and permission tests in `api/tests.py` (`B2.4`).
+5. **Small UX gaps (Robin and JP):** at-risk badges on the Tasks page (`F3.1`). Keep the last alerts after a reload, for example by running a `dry_run` generate on load or by calling `/planner/week/`.
+6. **Phase 5:** `docs/ALGORITHM.md` (Cody), visual polish (Robin), slides and the demo script (JP), and the "Human review" fields in Prompts.md (all).
+7. **Stretch, only if 1–6 are done:** `react-router`, automatic replanning after a change (`B4.3`), decimal hours, and "Missed" and "Lock" for blocks.
 
 ---
 
@@ -458,30 +457,32 @@ A known limit: EDF fills the earliest days first, so later days stay empty. If t
 
 ## 8. Demo script and seed data
 
-The demo takes about 4 minutes. `seed_demo` (`B1.4`, `B4.4`) creates this data for user `demo` so the demo is the same each time.
+The demo takes about 4 minutes. **Run `python manage.py seed_demo` right before the demo.** It deletes and recreates the `demo` account (password `demo1234`; change it with `--password`). All dates are relative to the day you run it, so the demo is the same on any day. Use `--today YYYY-MM-DD` to seed for another day.
 
-Demo user: a student with a part-time job.
+Demo user: a student with a part-time job. T is the demo day.
 
 | Type | Data |
 | --- | --- |
-| Settings | 09:00 to 19:00, 6 hours a day at most |
-| Commitment | Work shift, Tuesday and Thursday, 13:00 to 19:00 |
-| Commitment | Basketball practice, Monday and Wednesday, 17:00 to 19:00 |
-| Commitment | Dentist, one-off, Wednesday 10:00 to 11:00 |
-| Task | Capstone report: due Friday, 10 hours estimated, 3 done. With the shifts, only 5 free hours remain. This task triggers the README warning. |
-| Task | Math assignment: due next Monday, 4 hours estimated, 0 done |
-| Task | Reading notes: due in 10 days, 3 hours estimated, 1 done |
+| Settings | 09:00 to 19:00, 6 hours a day at most, every day, blocks 30 to 120 minutes, 15-minute breaks |
+| Commitment | Classes and labs: one-off, T, 09:00 to 19:00. There is no study time on the demo day, so the numbers do not depend on the time of the demo. |
+| Commitment | Shift at work: weekly on the weekdays of T+1 and T+3, 11:00 to 19:00 |
+| Commitment | Volunteering: weekly on the weekday of T+2, 11:00 to 19:00 |
+| Commitment | Dentist: one-off, T+2, 10:00 to 11:00 |
+| Project | Capstone report: due T+3, 10 hours estimated, 3 done, priority 8. Only 2 + 1 + 2 = 5 hours are free before the deadline, so it triggers the README alert: 7 left, 5 available, 2 short. |
+| Project | Math assignment: due T+7, 4 hours estimated, 0 done, priority 5. It fits. |
+| Project | Reading notes: due T+10, 3 hours estimated, 1 done, priority 3. It fits. |
+| Study blocks | Completed: Capstone T-2 14:00–15:00 and T-1 09:00–11:00, Reading T-1 13:00–14:00. These match the hours done. |
 
-> **Check before the demo:** with these settings, the days before Friday may have more than 5 free hours. `seed_demo` must tune the data so that only 5 hours remain, for example with a lower daily limit or more shifts. Then run "Generate plan" and confirm that the Capstone alert appears.
+The section 4.1 shapes differ from the real models (2.2): deadlines are dates, hours are whole numbers and priority is 0–10 (higher is more important). `api/test_seed_demo.py` checks the alert numbers and steps 5 and 6.
 
-Steps (matched to the current UI, 2026-11-14):
+Steps:
 
-1. Sign in as `demo`. On the dashboard, click **Generate plan**. The weekly calendar fills, and one alert appears. Alerts are not saved, so generate again after any reload.
+1. Sign in as `demo` / `demo1234`. On the dashboard, click **Generate plan**. Study blocks fill the free time from tomorrow on, and one alert appears for Capstone report. Alerts are not saved, so generate again after any reload.
 2. Open the **Tasks** and **Schedule** views to show the inputs.
-3. Open the **Calendar**. Study blocks fill the gaps around the shifts and practice. Deadlines show as markers.
-4. On the dashboard, point at the alert. It says 7 hours remain, 5 fit and 2 are missing, and it lists the suggestions.
-5. Life happens: **+ Add commitment** "Car broke down", tomorrow 13:00 to 17:00, one-off. The "plan out of date" banner appears. Click **Regenerate**, and the blocks move.
-6. Click **Can't study today** and block the rest of today. Regenerate. Today's blocks move to later days.
+3. Open the **Calendar**. Study blocks sit in the gaps around the shifts, the volunteering and the dentist. Deadlines show as markers.
+4. On the dashboard, point at the alert. It says 7 hours remain, 5 are available and 2 are missing, and it lists the suggestions.
+5. Life happens: **+ Add commitment** "Car broke down", one-off, **tomorrow 09:00 to 11:00**. The "plan out of date" banner appears. Click **Regenerate**. Capstone loses 2 more hours: the alert turns **critical**, with 3 available and 4 missing.
+6. Click **Can't study today** and choose the day the Math blocks start (T+4), for the whole day. Regenerate. The Math blocks move to later days, and Math still fits.
 7. Click a study block and choose **Mark as done**. The project's progress bar moves.
 8. Close with one sentence on EDF and point at `Prompts.md` for AI transparency.
 
