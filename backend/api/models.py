@@ -113,7 +113,6 @@ class DayOverride(models.Model):
 
 
 # --- Planner ----------------------------------------------------------------
-
 class StudyBlock(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='study_blocks')
