@@ -524,7 +524,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Output / changes:** Committed the work from entry 40 and this entry on `justin-backend-update` and pushed the branch to `origin`.
 - **Human review:** _TBD_
 
-### 36. Fix the overload, alert and suggestion problems
+### 42. Fix the overload, alert and suggestion problems
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
@@ -538,4 +538,28 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
   - `backend/api/scheduler.py`: alert suggestions count only days that still have free time, give a clear message when no study time is left, and suggest a higher daily limit only when the limit is what blocks the work (with how much it would help). Added 4 tests to `test_scheduler.py`; all 30 backend tests pass.
   - Added `api/api.d.ts` and the `localNow` type in `useGeneratePlan.d.ts`, so TypeScript files can import them.
   - Checked with `tsc`, `eslint`, `vite build`, the backend tests, and a 33-check browser test against the real API on a throwaway database (validation on every form, edit, delete, undo, one-time events, partial time off, the impact step, overload, and alerts after reload).
+- **Human review:** _TBD_
+
+### 43. Review the project and update the roadmap
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "go through the project and update the roadmap"
+- **Output / changes:**
+  - Reviewed `main` after PR #29: 34 backend tests pass, no pending migrations, `npm run build` and `eslint` pass. Read the new `usePlanCheck`, `usePlanStatus`, form and scheduler suggestion changes.
+  - `docs/ROADMAP.md`:
+    - Section 2: new summary. Updated statuses for `B3.1`, `B2.4`, `F1.1`, `F1.5`, `F2.1`, `F3.1` and `F4.1`, and decisions `D2` and `D5` (client at-risk flags are now live; capacity is the remaining difference).
+    - Marked the "alerts gone after reload" bug as fixed and added a note on the extra dry run per save. Narrowed priority 5 to the Tasks-page badges.
+    - Section 8: demo steps match the live alerts, the commitment hours note and the time-off impact preview ("Update my plan").
+  - `Prompts.md`: renumbered JP's PR #29 entry from 36 (a duplicate) to 42, and added this entry.
+- **Human review:** _TBD_
+
+### 44. Commit and push the roadmap update
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "commit and push"
+- **Output / changes:** Committed `docs/ROADMAP.md` and `Prompts.md` (entries 42–44) on `justin-testing` and pushed the branch to `origin`.
 - **Human review:** _TBD_
