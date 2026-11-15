@@ -138,8 +138,9 @@ export interface CommitmentCalendarEvent extends CalendarEventBase {
   task_id: null;
   status: null;
   locked: null;
-  // The backend dropped Commitment.kind, so real data has null here.
-  // "unavailable" marks time blocked by a day override.
+  // The backend dropped Commitment.kind (migration 0003), so real data,
+  // including /planner/events/, has null here. "unavailable" marks time
+  // blocked by a day override.
   kind: CommitmentKind | null;
 }
 

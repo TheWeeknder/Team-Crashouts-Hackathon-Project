@@ -50,16 +50,16 @@ Checked against `main` after PR #21.
 | `B1.6` | ✅ | `StudyBlock` uses `date`, `start_time`, `end_time` and `completed`. It has no `status` or `locked` field. |
 | `B2.1` | ✅ | EDF placement with tests in `api/test_scheduler.py`. |
 | `B2.2` | ✅ | `POST /api/v1/planner/generate/` takes `now` and `dry_run`, and returns `{ now, blocks, alerts }`. |
-| `B2.3` | 🟡 | `GET /api/v1/study-blocks/?date=` filters by one date only, with no `start`/`end` range. `/planner/events/` (section 4.3), which expands recurring commitments, does **not** exist. |
+| `B2.3` | ✅ | `GET /api/v1/planner/events/?start=&end=` returns study blocks, commitments (recurring ones expanded) and day overrides in the section 4.3 shape (`D1`). Raw blocks are still at `/study-blocks/`. |
 | `B2.4` | 🟡 | `test_scheduler.py` covers `generate`, including that users only see their own data. `api/tests.py` is empty: there are no CRUD or permission tests for the other endpoints. |
 | `B2.5` | ❌ | Depends on `B1.4`. |
 | `B3.1` | ✅ | Alerts with suggestions. The README example test passes. |
-| `B3.2` | ❌ | No `/planner/alerts/` or `/planner/week/`. Alerts come back from `generate` only. |
+| `B3.2` | 🟡 | `GET /api/v1/planner/week/?start=` returns the section 4.4 summary (`D2`). There is no `/planner/alerts/`: alerts come back from `generate`, and `week` marks at-risk projects. |
 | `B3.3` | ❌ | No `progress/` endpoint. A client can still `PATCH` `completed_hours`, but nothing sets `status` to `completed`. |
 | `B4.1` | 🟡 | `PATCH /study-blocks/{id}/` with `completed` works. It does not add hours to the project, and there is no "missed" or "locked" state. |
 | `B4.2` | 🟡 | Calling `generate` again works as a replan: it keeps completed blocks and blocks that have started. There is no separate `replan(user)` service. |
 | `B4.3` | ❌ | Changes to data do not trigger a replan. The frontend must call `generate`. |
-| `F0.1` | ❌ | **Blocks every other frontend task.** Tailwind, daisyUI and `react-router` are not installed. `App.tsx` is still the Vite demo page behind a login check. The components already use Tailwind classes, which have no effect right now. |
+| `F0.1` | 🟡 | PR #23 added Tailwind and daisyUI, styled every page and replaced the Vite demo. `App.tsx` switches between views with state: `react-router` is not installed. `npm run build` still fails (2.4). |
 | `F0.2` | ✅ | `types/api.ts` (planned contract), `services/mocks.ts`, FullCalendar v7. `date-fns` is not installed. There is also `types/backend.ts`, which matches the real backend. |
 | `F1.1` | 🟡 | Done differently: `src/api/api.js` (fetch wrapper with Basic auth in `sessionStorage`) and TanStack Query hooks in `src/hooks/` for every resource, plus `useGeneratePlan`. There is no `VITE_USE_MOCKS` switch. |
 | `F1.2` | 🟡 | `LoginPage` and `RegisterPage` work. `App.tsx` switches between them with state, with no route guard. |
@@ -68,13 +68,13 @@ Checked against `main` after PR #21.
 | `F1.5` | 🟡 | `DashboardPage` shows `WeeklyCalendar` on mock data. `PlanForDay` and `ProgressTracker` exist but are not on the page. There is no alerts panel. |
 | `F2.1` | ❌ | No Schedule (commitments) page. `useCommitments` is ready. `hooks/useSchedules.js` is an empty file. |
 | `F2.2` | ❌ | No Settings page. `usePlannerSettings` is ready. |
-| `F2.3` | ❌ | The calendar uses mock data only. There is no "Generate plan" button. |
+| `F2.3` | 🟡 | `useCalendarEvents` and `useWeeklySummary` hooks are ready, and they refetch after `generatePlan` and after any data change. The pages still use `mocks.ts`, and there is no "Generate plan" button. |
 | `F3.x`, `F4.x` | ❌ | Not started. |
 | Phase 5 | ❌ | Not started. This README update covers part of `B5.1`. |
 
 ### 2.2 The real backend differs from the contract in section 4
 
-The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `ProgressTracker`) use the section 4 shapes in `types/api.ts`. The API returns the shapes in `types/backend.ts`. **The team must pick one fix now** (decision `D1` in 2.3).
+The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `ProgressTracker`) use the section 4 shapes in `types/api.ts`. The CRUD endpoints return the shapes in `types/backend.ts`. Decision `D1` (2.3) fixes this for the components: `/planner/events/` and `/planner/week/` return the `types/api.ts` shapes.
 
 | Planned (section 4) | Real backend (`api/models.py`) |
 | --- | --- |
@@ -91,16 +91,18 @@ The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `Pro
 | `/settings/`, one row with defaults | `/planner-settings/`, a list. A user can have 0 or more rows. Fields are `day_start_time` and `day_end_time`, and `work_days` is text. Empty values fall back to the scheduler defaults. |
 | `DayOverride.max_hours` lowers the capacity of a day | `DayOverride` has `start_time` and `end_time` and **blocks that time**. With no times, it blocks the whole day. You cannot express "only 2 hours today". |
 | `StudyBlock` with `start`/`end` datetimes, `status`, `locked` | `date`, `start_time`, `end_time`, `completed` |
-| `/planner/blocks/`, `/planner/events/`, `/planner/alerts/`, `/planner/week/` | `/study-blocks/` only. Alerts come back from `generate`. |
+| `/planner/blocks/`, `/planner/events/`, `/planner/alerts/`, `/planner/week/` | `/study-blocks/`, `/planner/events/` and `/planner/week/`. There is no `/planner/alerts/`: alerts come back from `generate`. |
+| `CalendarEvent.kind` is a commitment kind | Always `null`. Study blocks have only `planned` or `done`, and `locked` is always `false`. Day overrides appear as `commitment` events with ids `override-<id>-<date>`. |
+| Offsets like `-07:00` | The server's real `America/Edmonton` offset. tzdata 2026.6 gives **`-06:00`** in November 2026, so do not hard-code `-07:00`. |
 
-### 2.3 Decisions to make now
+### 2.3 Decisions (made and built)
 
-| ID | Decision | Recommended |
+| ID | Decision | Outcome |
 | --- | --- | --- |
-| `D1` | How do the components get the data they expect? | Keep the backend models as they are. Cody adds `GET /api/v1/planner/events/?start=&end=` that returns the section 4.3 `CalendarEvent` shape, with recurring commitments expanded. The calendar components then work as they are. Pages that edit data use `types/backend.ts`. |
-| `D2` | How does the weekly progress view get its data? | Either Cody adds `/planner/week/` (section 4.4) or JP computes it on the client from `/projects/` and `/study-blocks/`. The endpoint is cleaner. The client version needs no backend work. |
-| `D3` | How does a "low-energy day" work? | Model it as a `DayOverride` that blocks part of the day, for example 13:00 to 19:00. This needs no backend change. Otherwise add `max_hours` to `DayOverride`. |
-| `D4` | Auth | Keep Basic auth for the demo. It already works end to end. |
+| `D1` | How do the components get the data they expect? | **Built.** The backend models stay as they are. `GET /api/v1/planner/events/?start=YYYY-MM-DD&end=YYYY-MM-DD` returns the section 4.3 `CalendarEvent` shape. `end` is exclusive, the default is this week, and the maximum range is 92 days. It returns study blocks (`block-<id>`, coloured by project), commitments with recurring ones expanded (`commitment-<id>-<date>`) and day overrides (`override-<id>-<date>`). Frontend: `useCalendarEvents({ start, end })`. Pages that edit data use `types/backend.ts`. |
+| `D2` | How does the weekly progress view get its data? | **Built as an endpoint.** `GET /api/v1/planner/week/?start=YYYY-MM-DD&now=...` returns the section 4.4 `WeeklySummary`. `capacity_hours` is free time minus commitments and overrides, capped by the daily limit. `missed_hours` counts past blocks not marked completed. `at_risk` comes from a dry run of the planner, which saves nothing. Frontend: `useWeeklySummary(start)`. |
+| `D3` | How does a "low-energy day" work? | **Decided, no code needed.** It is a `DayOverride` that blocks part of the day, for example 13:00 to 19:00. With no times, it blocks the whole day (sick day). It shows on the calendar as an override event. |
+| `D4` | Auth | **Decided, no code needed.** Keep Basic auth for the demo. |
 
 ### 2.4 Known bugs and cleanup
 
@@ -116,9 +118,9 @@ The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `Pro
 These are the tasks the demo in section 8 depends on. Do them in this order.
 
 1. **`F0.1` (Robin):** install Tailwind and daisyUI and `react-router`. Replace the Vite demo in `App.tsx` with a layout, a navbar and routes for `/dashboard`, `/calendar`, `/tasks`, `/schedule` and `/settings`. Fix the build (2.4).
-2. **`D1` and `B2.3` (Cody):** `/planner/events/` endpoint. **`F2.3` (JP):** connect the calendar and dashboard to it, and add a "Generate plan" button that uses `useGeneratePlan`.
+2. **`F2.3` (JP):** replace `mockEvents` and `mockWeeklySummary` in `CalendarPage` and `DashboardPage` with `useCalendarEvents` and `useWeeklySummary`. Add a "Generate plan" button that uses `useGeneratePlan`. The endpoints are done (`D1`, `D2`).
 3. **`F1.3`, `F2.1` and `F2.2` (Robin):** Projects, Commitments and Settings pages on the existing hooks.
-4. **`F3.3` (JP):** an alerts panel that shows the `alerts` from `generate`. Put `PlanForDay` and `ProgressTracker` on the dashboard (`D2`).
+4. **`F3.3` (JP):** an alerts panel that shows the `alerts` from `generate`. `ProgressTracker` reads `useWeeklySummary`, and `at_risk` marks the projects that need attention.
 5. **`B1.4` and `B4.4` (Justin):** `seed_demo` with the section 8 data, adjusted to the real models (date deadlines, whole hours, `DayOverride` as blocked time).
 6. **`B1.2`, `B2.4` and `B3.3` (Justin):** validation, CRUD and permission tests in `api/tests.py`. When `completed_hours` reaches `estimated_hours`, set `status` to `completed`.
 7. **`B4.1` (Cody) and `F4.1`/`F4.2` (Robin, JP):** marking a block done adds its hours to the project. "Life happens" actions call `generate` after each change.
@@ -144,7 +146,7 @@ The team makes these choices together before people split up. The recommended op
 
 ## 4. Shared API contract
 
-> **Note (2026-11-14):** this is the contract the team **planned**. The real backend differs. Section 2.2 lists the differences, and `frontend/src/types/backend.ts` has the real shapes. Until the team settles decision `D1`, use `types/backend.ts` for anything that reads or writes the API.
+> **Note (2026-11-14):** this is the contract the team **planned**. The real backend differs. Section 2.2 lists the differences, and `frontend/src/types/backend.ts` has the real shapes. Use `types/backend.ts` for the CRUD endpoints. `/planner/events/` and `/planner/week/` follow sections 4.3 and 4.4, with the differences listed in 2.2.
 
 Everyone codes against this contract from the start. The frontend uses mock data that matches it until the real endpoints exist. If you change the contract, update this section and tell your pair in the team chat.
 
