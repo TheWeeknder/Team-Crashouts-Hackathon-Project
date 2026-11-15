@@ -130,7 +130,9 @@ export interface CommitmentCalendarEvent extends CalendarEventBase {
   task_id: null;
   status: null;
   locked: null;
-  kind: CommitmentKind;
+  // The real backend has no Commitment.kind (removed in migration 0003),
+  // so /planner/events/ sends null.
+  kind: CommitmentKind | null;
 }
 
 export type CalendarEvent =

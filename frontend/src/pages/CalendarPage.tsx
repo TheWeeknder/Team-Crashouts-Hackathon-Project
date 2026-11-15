@@ -125,7 +125,9 @@ export default function CalendarPage() {
                     <>
                       <dt className="text-base-content/60">Kind</dt>
                       <dd className="font-medium">
-                        {formatLabel(selectedEvent.kind)}
+                        {selectedEvent.kind
+                          ? formatLabel(selectedEvent.kind)
+                          : "Commitment"}
                       </dd>
                     </>
                   )}

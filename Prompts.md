@@ -339,3 +339,43 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Prompt:** "update prompt.md with last prompts and commit changes"
 - **Output / changes:** Added entries 25 and 26, and committed `README.md`, `docs/ROADMAP.md` and `Prompts.md` to `Justins-update-branch`.
 - **Human review:** _TBD_
+
+### 27. Implement the roadmap 2.3 decisions
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "Implement recommendations for 2.3 in Roadmap"
+- **Output / changes:**
+  - `backend/api/views.py`:
+    - `D1`: new `CalendarEventsView` (`GET /api/v1/planner/events/?start=&end=`) returns study blocks, expanded commitments and day overrides in the `CalendarEvent` shape.
+    - `D2`: new `WeeklySummaryView` (`GET /api/v1/planner/week/?start=&now=`) returns the `WeeklySummary` shape. `at_risk` comes from a dry run of the planner.
+    - Moved the planner input building out of `GeneratePlanView` into shared helpers. `generate` behaves the same.
+  - `backend/api/scheduler.py`: new `daily_capacity()` for the weekly summary.
+  - `backend/api/urls.py`: registered both routes.
+  - `backend/api/test_scheduler.py`: 7 new tests, 23 in total, all passing. Expected timestamps use the server's real offset, because tzdata gives `America/Edmonton` `-06:00` in November 2026, not `-07:00`.
+  - Frontend:
+    - New `useCalendarEvents` and `useWeeklySummary` hooks with `.d.ts` files. Planner queries refetch after `generatePlan` and after any resource change (`resource.js`, `useGeneratePlan.js`).
+    - `types/api.ts` now allows `kind: null`.
+    - `PlanForDay` and `CalendarPage` show "Commitment" when `kind` is null.
+  - `D3` and `D4` needed no code. The roadmap records them as decided.
+  - `docs/ROADMAP.md` and `README.md`: updated the 2.1 statuses (`B2.3`, `B3.2`, `F0.1`, `F2.3`), the 2.2 differences, 2.3 (now "made and built"), the 2.5 priorities, the API table, the test count and the checklist.
+- **Human review:** _TBD_
+
+### 28. Fix the generate save step and time zone handling of `now`
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "replaceable is lazy: it's a queryset, not a list. If post creates the new blocks before deleting replaceable, the delete will re-run the query and could match the blocks it just created. Delete first, or turn it into a list of IDs before creating anything, and wrap both steps in transaction.atomic(). Timezones: now.date() and now.time() assume now is in the same timezone your date/start_time fields are stored in. If now is in UTC and blocks use the user's local time, blocks near midnight or the current hour can land in the wrong group."
+- **Output / changes:**
+  - `backend/api/views.py`, `GeneratePlanView.post`:
+    - The code already deleted before creating, inside `transaction.atomic()`.
+    - It now snapshots the replaceable block IDs at planning time. Inside the transaction, it deletes only those IDs, skipping any marked completed since planning, and then creates the new blocks.
+  - `backend/api/views.py`, `_parse_now`:
+    - A `now` with an offset (`Z`, `-06:00`) is now converted to `settings.TIME_ZONE` (America/Edmonton), the zone the block date and time fields use. Before, the offset was dropped, so UTC times were read as Edmonton times.
+    - A `now` without an offset is still taken as server-local time.
+    - Fixed docstrings that said the server runs in UTC.
+  - `frontend/src/hooks/useGeneratePlan.js`: `localNow()` now sends the browser's offset, so `generate` and `week` are correct from any time zone. Updated the comment in `types/backend.ts`.
+  - `backend/api/test_scheduler.py`: 3 tests (26 in total, all passing): a UTC `now` is converted, a `now` without an offset stays local, and a late-evening `now` from UTC+1 still replaces a 17:00 Edmonton block from today. The first and third fail on the old code.
+- **Human review:** _TBD_

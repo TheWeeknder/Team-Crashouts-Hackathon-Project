@@ -3,12 +3,14 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     AccountViewSet,
+    CalendarEventsView,
     CommitmentViewSet,
     DayOverrideViewSet,
     GeneratePlanView,
     PlannerSettingsViewSet,
     ProjectViewSet,
     StudyBlockViewSet,
+    WeeklySummaryView,
 )
 
 router = DefaultRouter()
@@ -21,4 +23,6 @@ router.register("study-blocks", StudyBlockViewSet, basename="study-block")
 
 urlpatterns = router.urls + [
     path("planner/generate/", GeneratePlanView.as_view(), name="planner-generate"),
+    path("planner/events/", CalendarEventsView.as_view(), name="planner-events"),
+    path("planner/week/", WeeklySummaryView.as_view(), name="planner-week"),
 ]

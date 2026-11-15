@@ -46,12 +46,15 @@ export function useResourceItem(resource, id) {
 export function useResourceMutations(resource, { alsoInvalidate = [] } = {}) {
     const queryClient = useQueryClient();
 
+    // Planner views (['planner', ...]: calendar events, weekly summary) are
+    // built from every resource, so they refresh after any change too.
     const refresh = () =>
-        Promise.all(
-            [resource, ...alsoInvalidate].map((key) =>
+        Promise.all([
+            ...[resource, ...alsoInvalidate].map((key) =>
                 queryClient.invalidateQueries({ queryKey: [key, 'list'] }),
             ),
-        );
+            queryClient.invalidateQueries({ queryKey: ['planner'] }),
+        ]);
 
     const saved = (item) => {
         queryClient.setQueryData([resource, 'detail', item.id], item);
