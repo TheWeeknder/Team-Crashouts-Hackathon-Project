@@ -3,18 +3,24 @@ import { useState } from "react";
 import useCurrentUser from "./hooks/useCurrentUser";
 import useLogout from "./hooks/useLogout";
 
+import Modal from "./components/Modal";
+import SettingsForm from "./components/forms/SettingsForm";
 import CalendarPage from "./pages/CalendarPage";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import SchedulePage from "./pages/SchedulePage";
+import TasksPage from "./pages/TasksPage";
 
-type AppView = "overview" | "dashboard" | "calendar";
+type AppView = "overview" | "dashboard" | "calendar" | "tasks" | "schedule";
 type AuthView = "login" | "register";
 
 const navigation: { id: AppView; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "dashboard", label: "Dashboard" },
   { id: "calendar", label: "Calendar" },
+  { id: "tasks", label: "Tasks" },
+  { id: "schedule", label: "Schedule" },
 ];
 
 const features = [
@@ -47,6 +53,7 @@ const features = [
 function App() {
   const [activeView, setActiveView] = useState<AppView>("overview");
   const [authView, setAuthView] = useState<AuthView>("login");
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const { user } = useCurrentUser();
   const logout = useLogout();
@@ -154,18 +161,34 @@ function App() {
               Signed in as{" "}
               <strong className="text-base-content">{user.username}</strong>
             </span>
-            <div className="avatar avatar-placeholder" aria-hidden="true">
-              <div className="w-9 rounded-full bg-primary/15 text-primary">
-                <span className="text-xs font-bold">{initials}</span>
-              </div>
+            <div className="dropdown dropdown-end">
+              <button
+                type="button"
+                tabIndex={0}
+                className="avatar avatar-placeholder btn btn-ghost btn-circle"
+                aria-label="Account menu"
+              >
+                <div className="w-9 rounded-full bg-primary/15 text-primary">
+                  <span className="text-xs font-bold">{initials}</span>
+                </div>
+              </button>
+              <ul
+                tabIndex={0}
+                className="menu dropdown-content z-50 mt-3 w-52 rounded-box bg-base-100 p-2 shadow-lg"
+              >
+                <li className="menu-title md:hidden">{user.username}</li>
+                <li>
+                  <button type="button" onClick={() => setSettingsOpen(true)}>
+                    Planner settings
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={logout}>
+                    Log out
+                  </button>
+                </li>
+              </ul>
             </div>
-            <button
-              type="button"
-              className="btn btn-outline btn-sm"
-              onClick={logout}
-            >
-              Log out
-            </button>
           </div>
         </div>
       </header>
@@ -336,10 +359,27 @@ function App() {
           </div>
         )}
 
-        {activeView === "dashboard" && <DashboardPage />}
+        {activeView === "dashboard" && (
+          <DashboardPage onOpenSettings={() => setSettingsOpen(true)} />
+        )}
 
         {activeView === "calendar" && <CalendarPage />}
+
+        {activeView === "tasks" && <TasksPage />}
+
+        {activeView === "schedule" && (
+          <SchedulePage onOpenSettings={() => setSettingsOpen(true)} />
+        )}
       </main>
+
+      <Modal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        title="Planner settings"
+        description="When you like to study. The planner only schedules sessions inside these hours."
+      >
+        <SettingsForm onDone={() => setSettingsOpen(false)} />
+      </Modal>
 
       <footer className="border-t border-base-300 bg-base-100">
         <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-6 text-sm text-base-content/60 sm:flex-row sm:justify-between">

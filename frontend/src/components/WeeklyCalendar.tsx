@@ -13,6 +13,9 @@ interface WeeklyCalendarProps {
   events: CalendarEvent[];
   initialDate?: string;
   onEventClick?: (event: CalendarEvent) => void;
+  // Hide the prev/next/today buttons when the parent controls the week
+  // (remount with a new key and initialDate to change it).
+  hideNavigation?: boolean;
 }
 
 const plugins = [themePlugin, timeGridPlugin];
@@ -23,10 +26,13 @@ const headerToolbar = {
   right: "",
 };
 
+const titleOnlyToolbar = { left: "", center: "title", right: "" };
+
 export default function WeeklyCalendar({
   events,
   initialDate,
   onEventClick,
+  hideNavigation = false,
 }: WeeklyCalendarProps) {
   const handleEventClick = useCallback(
     (info: { event: { id: string } }) => {
@@ -49,14 +55,13 @@ export default function WeeklyCalendar({
             plugins={plugins}
             initialView="timeGridWeek"
             initialDate={initialDate}
-            timeZone="America/Edmonton"
             firstDay={1}
-            headerToolbar={headerToolbar}
+            headerToolbar={hideNavigation ? titleOnlyToolbar : headerToolbar}
             events={events}
             eventClick={handleEventClick}
-            eventContrastColor="#ffffff"
             editable={false}
-            allDaySlot={false}
+            allDaySlot
+            allDayText="All day"
             slotMinTime="06:00:00"
             slotMaxTime="23:00:00"
             slotDuration="00:30:00"

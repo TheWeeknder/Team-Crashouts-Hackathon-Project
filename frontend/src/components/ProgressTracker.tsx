@@ -10,12 +10,10 @@ const hoursFormatter = new Intl.NumberFormat("en-CA", {
   maximumFractionDigits: 2,
 });
 
-const deadlineFormatter = new Intl.DateTimeFormat("en-CA", {
-  timeZone: "America/Edmonton",
+const deadlineFormatter = new Intl.DateTimeFormat(undefined, {
+  weekday: "short",
   month: "short",
   day: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
 });
 
 function formatHours(hours: number): string {
@@ -92,7 +90,6 @@ export default function ProgressTracker({
 
         <p className="mt-1 text-xs text-base-content/50">
           Task completion includes all logged hours, not just this week.
-          Deadlines are shown in Edmonton time.
         </p>
 
         {summary.tasks.length === 0 ? (
@@ -127,12 +124,18 @@ export default function ProgressTracker({
                   </div>
 
                   <p className="mt-1 text-xs text-base-content/50">
-                    Due{" "}
-                    <time dateTime={task.deadline}>
-                      {deadlineFormatter.format(
-                        new Date(task.deadline),
-                      )}
-                    </time>
+                    {task.deadline ? (
+                      <>
+                        Due{" "}
+                        <time dateTime={task.deadline}>
+                          {deadlineFormatter.format(
+                            new Date(task.deadline),
+                          )}
+                        </time>
+                      </>
+                    ) : (
+                      "No deadline"
+                    )}
                   </p>
 
                   <div className="mt-4 flex items-center justify-between gap-3 text-sm">

@@ -49,14 +49,12 @@ export default function MonthlyCalendar({
             plugins={plugins}
             initialView="dayGridMonth"
             initialDate={initialDate}
-            timeZone="America/Edmonton"
             firstDay={1}
             headerToolbar={headerToolbar}
             events={events}
             eventClick={handleEventClick}
             eventDisplay="block"
             dayMaxEvents={3}
-            eventContrastColor="#ffffff"
             editable={false}
             height="auto"
           />
