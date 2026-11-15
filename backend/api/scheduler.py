@@ -266,6 +266,27 @@ def _free_days(now, last_day, settings, commitments, overrides, kept_blocks) -> 
     return days
 
 
+def daily_capacity(
+    first_day: date,
+    last_day: date,
+    settings: Settings,
+    commitments: list[Commitment] = (),
+    overrides: list[DayOverride] = (),
+) -> dict[date, int]:
+    """Study minutes each day allows: free time in the work window, capped by
+    the daily limit. Ignores study blocks. Days off are 0."""
+    capacity = {}
+    days = _free_days(datetime.combine(first_day, time.min), last_day, settings, commitments, overrides, ())
+    by_date = {d.date: d for d in days}
+    day = first_day
+    while day <= last_day:
+        d = by_date.get(day)
+        free = sum(_minutes(start, end) for start, end in d.free) if d else 0
+        capacity[day] = min(free, d.capacity) if d else 0
+        day += timedelta(days=1)
+    return capacity
+
+
 def _place(project, needed, deadline, days, settings, blocks) -> int:
     """Fills the earliest free time up to the deadline. Returns minutes placed."""
     placed = 0

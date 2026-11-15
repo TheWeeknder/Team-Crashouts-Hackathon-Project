@@ -48,8 +48,8 @@ An **adaptive study planner** that:
 | Layer | Tech |
 | --- | --- |
 | Backend | Python, Django 6.1, Django REST Framework, `django-cors-headers`, SQLite |
-| Frontend | React 19, TypeScript, Vite, TanStack Query, FullCalendar v7 |
-| Planned, not installed yet | Tailwind CSS + daisyUI, `react-router`, `date-fns` |
+| Frontend | React 19, TypeScript, Vite, TanStack Query, FullCalendar v7, Tailwind CSS + daisyUI |
+| Planned, not installed yet | `react-router`, `date-fns` |
 
 ---
 
@@ -95,7 +95,7 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py createsuperuser   # optional, for /admin/
 python manage.py runserver         # http://127.0.0.1:8000
-python manage.py test api          # 16 tests
+python manage.py test api          # 23 tests
 ```
 
 There is no demo seed command yet (`seed_demo`, see the roadmap). Create a user through the sign-up page, `POST /api/v1/accounts/` or the Django admin.
@@ -125,6 +125,8 @@ All routes start with `/api/v1/` and use HTTP Basic auth. Each user sees only th
 | `planner-settings/` | Work window, work days, daily limit, block sizes |
 | `day-overrides/` | Time blocked on one date (sick day, emergency) |
 | `study-blocks/` | Scheduled study sessions (`?date=`, `?project=`, `?completed=`) |
+| `GET planner/events/?start=&end=` | Calendar events in a date range: study blocks, commitments (recurring ones expanded) and day overrides. `end` is exclusive. |
+| `GET planner/week/?start=` | Weekly summary: hours planned, done and missed, daily capacity, and project progress with at-risk flags |
 | `POST planner/generate/` | Build a new plan. Body: `{ "now": "2026-11-18T14:30", "dry_run": false }`. Returns `{ now, blocks, alerts }`. |
 
 ---
@@ -140,16 +142,17 @@ See [docs/ROADMAP.md](docs/ROADMAP.md), section 2, for the status of each task, 
 - [x] Sign up and login (Basic auth)
 - [x] Scheduling algorithm: earliest deadline first, with breaks, block sizes and a daily limit
 - [x] Feasibility alerts with suggestions, returned by `planner/generate/`
-- [x] Scheduler and generate-endpoint tests (16 passing)
+- [x] Calendar events and weekly summary endpoints for the frontend components
+- [x] Scheduler and planner endpoint tests (23 passing)
 - [x] Frontend API client and data hooks for every resource
 - [x] Login and register pages
 - [x] Monthly and weekly calendar, day plan and progress components (on mock data)
 
 **Still to do**
 
-- [ ] Frontend app shell: Tailwind + daisyUI, routing, navbar. Replace the Vite demo page in `App.tsx` and fix the build.
-- [ ] Decide how the frontend gets calendar-shaped data: a `/planner/events/` endpoint or a client adapter (roadmap `D1`)
-- [ ] Connect the calendar and dashboard to real data, and add a "Generate plan" button
+- [x] Tailwind + daisyUI styling and an app shell with views
+- [ ] Routing (`react-router`) and a passing `npm run build`
+- [ ] Connect the calendar and dashboard to real data (`useCalendarEvents`, `useWeeklySummary`), and add a "Generate plan" button
 - [ ] Projects, Commitments and Settings pages
 - [ ] Alerts panel and weekly progress on the dashboard
 - [ ] Re-plan when life happens: mark blocks done or missed, add an emergency or a low-energy day, then regenerate

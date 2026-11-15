@@ -151,7 +151,8 @@ export interface StudyBlockListParams {
 // ---------- Plan generation (POST /planner/generate/) ----------
 
 export interface GeneratePlanInput {
-  // Local time, e.g. "2026-11-18T14:30". useGeneratePlan fills it in.
+  // The browser's time with its offset, e.g. "2026-11-18T14:30-06:00". The
+  // server converts it to America/Edmonton. useGeneratePlan fills it in.
   now?: string
   // If true, the server returns the plan without saving it.
   dry_run?: boolean
@@ -170,6 +171,7 @@ export interface PlanAlert {
 }
 
 export interface GeneratePlanResponse {
+  // The "now" the plan used, as America/Edmonton wall-clock time.
   now: string
   // With dry_run, the blocks have id null.
   blocks: Array<Omit<StudyBlock, 'id'> & { id: number | null }>

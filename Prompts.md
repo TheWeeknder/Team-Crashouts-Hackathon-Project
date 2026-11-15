@@ -82,42 +82,43 @@ This file records every use of AI tools on this project, for transparency with t
 - **Tool / model:** Copilot SDK in VS Code (model not surfaced)
 - **Used by:** Cody
 - **Prompt:** "(.venv) cody@lap-cody-lenovo:/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend$ python3 manage.py makemigrations
-Traceback (most recent call last):
+  Traceback (most recent call last):
   File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/apps/config.py\", line 210, in create
-    app_module = import_module(app_name)
-  File \"/usr/lib/python3.13/importlib/__init__.py\", line 88, in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File \"<frozen importlib._bootstrap>\", line 1387, in _gcd_import
-  File \"<frozen importlib._bootstrap>\", line 1360, in _find_and_load
-  File \"<frozen importlib._bootstrap>\", line 1324, in _find_and_load_unlocked
-ModuleNotFoundError: No module named 'projects'
+  app_module = import_module(app_name)
+  File \"/usr/lib/python3.13/importlib/**init**.py\", line 88, in import_module
+  return \_bootstrap.\_gcd_import(name[level:], package, level)
+  ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File \"<frozen importlib._bootstrap>\", line 1387, in \_gcd_import
+  File \"<frozen importlib._bootstrap>\", line 1360, in \_find_and_load
+  File \"<frozen importlib._bootstrap>\", line 1324, in \_find_and_load_unlocked
+  ModuleNotFoundError: No module named 'projects'
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
-  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/manage.py\", line 22, in <module>
-    main()
-    ~~~~^^
-  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/manage.py\", line 18, in main
-    execute_from_command_line(sys.argv)
-    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
-  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/core/management/__init__.py\", line 443, in execute_from_command_line
-    utility.execute()
-    ~~~~~~~~~~~~~~~^^
-  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/core/management/__init__.py\", line 417, in execute
-    django.setup()
-    ~~~~~~~~~~~~^^
-  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/__init__.py\", line 24, in setup
-    apps.populate(settings.INSTALLED_APPS)
-    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
-  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/apps/registry.py\", line 91, in populate
-    app_config = AppConfig.create(entry)
-  File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/apps/config.py\", line 212, in create
-    raise ImproperlyConfigured(
-    ...<6 lines>...
-    )
+File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/manage.py\", line 22, in <module>
+main()
+~~~~^^
+File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/manage.py\", line 18, in main
+execute_from_command_line(sys.argv)
+~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/core/management/**init**.py\", line 443, in execute_from_command_line
+utility.execute()
+~~~~~~~~~~~~~~~^^
+File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/core/management/**init**.py\", line 417, in execute
+django.setup()
+~~~~~~~~~~~~^^
+File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/**init**.py\", line 24, in setup
+apps.populate(settings.INSTALLED_APPS)
+~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/apps/registry.py\", line 91, in populate
+app_config = AppConfig.create(entry)
+File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/.venv/lib/python3.13/site-packages/django/apps/config.py\", line 212, in create
+raise ImproperlyConfigured(
+...<6 lines>...
+)
 django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check that 'apps.projects.apps.ProjectsConfig.name' is correct."
+
 - **Output / changes:** Updated all four Django AppConfig `name` values to match their `apps.*` package paths used in settings and generated initial migrations for the four apps.
 - **Human review:** _TBD_"
 
@@ -390,4 +391,53 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Used by:** JP
 - **Prompt:** "i am ready to add the ai usage entries"
 - **Output / changes:** Fast-forwarded `jp-apptsx-branch` to `origin/main` so the numbering would not conflict, then added entries 27–31 to `Prompts.md`.
+- **Human review:** _TBD_
+
+### 27. Implement the roadmap 2.3 decisions
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "Implement recommendations for 2.3 in Roadmap"
+- **Output / changes:**
+  - `backend/api/views.py`:
+    - `D1`: new `CalendarEventsView` (`GET /api/v1/planner/events/?start=&end=`) returns study blocks, expanded commitments and day overrides in the `CalendarEvent` shape.
+    - `D2`: new `WeeklySummaryView` (`GET /api/v1/planner/week/?start=&now=`) returns the `WeeklySummary` shape. `at_risk` comes from a dry run of the planner.
+    - Moved the planner input building out of `GeneratePlanView` into shared helpers. `generate` behaves the same.
+  - `backend/api/scheduler.py`: new `daily_capacity()` for the weekly summary.
+  - `backend/api/urls.py`: registered both routes.
+  - `backend/api/test_scheduler.py`: 7 new tests, 23 in total, all passing. Expected timestamps use the server's real offset, because tzdata gives `America/Edmonton` `-06:00` in November 2026, not `-07:00`.
+  - Frontend:
+    - New `useCalendarEvents` and `useWeeklySummary` hooks with `.d.ts` files. Planner queries refetch after `generatePlan` and after any resource change (`resource.js`, `useGeneratePlan.js`).
+    - `types/api.ts` now allows `kind: null`.
+    - `PlanForDay` and `CalendarPage` show "Commitment" when `kind` is null.
+  - `D3` and `D4` needed no code. The roadmap records them as decided.
+  - `docs/ROADMAP.md` and `README.md`: updated the 2.1 statuses (`B2.3`, `B3.2`, `F0.1`, `F2.3`), the 2.2 differences, 2.3 (now "made and built"), the 2.5 priorities, the API table, the test count and the checklist.
+- **Human review:** _TBD_
+
+### 28. Fix the generate save step and time zone handling of `now`
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "replaceable is lazy: it's a queryset, not a list. If post creates the new blocks before deleting replaceable, the delete will re-run the query and could match the blocks it just created. Delete first, or turn it into a list of IDs before creating anything, and wrap both steps in transaction.atomic(). Timezones: now.date() and now.time() assume now is in the same timezone your date/start_time fields are stored in. If now is in UTC and blocks use the user's local time, blocks near midnight or the current hour can land in the wrong group."
+- **Output / changes:**
+  - `backend/api/views.py`, `GeneratePlanView.post`:
+    - The code already deleted before creating, inside `transaction.atomic()`.
+    - It now snapshots the replaceable block IDs at planning time. Inside the transaction, it deletes only those IDs, skipping any marked completed since planning, and then creates the new blocks.
+  - `backend/api/views.py`, `_parse_now`:
+    - A `now` with an offset (`Z`, `-06:00`) is now converted to `settings.TIME_ZONE` (America/Edmonton), the zone the block date and time fields use. Before, the offset was dropped, so UTC times were read as Edmonton times.
+    - A `now` without an offset is still taken as server-local time.
+    - Fixed docstrings that said the server runs in UTC.
+  - `frontend/src/hooks/useGeneratePlan.js`: `localNow()` now sends the browser's offset, so `generate` and `week` are correct from any time zone. Updated the comment in `types/backend.ts`.
+  - `backend/api/test_scheduler.py`: 3 tests (26 in total, all passing): a UTC `now` is converted, a `now` without an offset stays local, and a late-evening `now` from UTC+1 still replaces a 17:00 Edmonton block from today. The first and third fail on the old code.
+- **Human review:** _TBD_
+
+### 29. Commit and push the roadmap 2.3 work
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "commit and push"
+- **Output / changes:** Committed the work from entries 27 and 28 as `af7d24e` on `justin-reccomendations-roadmap` and pushed it to `origin`. Added this entry in a follow-up commit.
 - **Human review:** _TBD_

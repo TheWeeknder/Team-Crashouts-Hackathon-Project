@@ -125,7 +125,9 @@ export default function PlanForDay({
                   <span className="badge badge-ghost badge-sm shrink-0">
                     {event.type === "study"
                       ? "Study"
-                      : formatLabel(event.kind)}
+                      : event.kind
+                        ? formatLabel(event.kind)
+                        : "Commitment"}
                   </span>
                 </div>
 
