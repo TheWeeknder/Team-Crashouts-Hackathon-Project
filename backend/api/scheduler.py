@@ -231,7 +231,7 @@ def build_plan(
         needed = project.remaining_minutes
         placed = _place(project, needed, deadline, days, settings, blocks)
         if placed < needed:
-            alerts.append(_make_alert(project, needed, placed, today, days, settings))
+            alerts.append(_make_alert(project, needed, placed, today, days, settings, blocks))
 
     blocks.sort(key=lambda b: (b.date, b.start_time))
     return Plan(blocks=blocks, alerts=alerts)
@@ -318,21 +318,47 @@ def _place(project, needed, deadline, days, settings, blocks) -> int:
     return placed
 
 
-def _make_alert(project, needed, placed, today, days, settings) -> Alert:
+def _make_alert(project, needed, placed, today, days, settings, blocks) -> Alert:
+    """Builds the shortfall alert. Called after _place, so each day's `free`
+    intervals and `capacity` hold what is left after every block placed so far."""
     shortfall = needed - placed
     suggestions = []
     if project.deadline and project.deadline < today:
         suggestions.append("The deadline has passed. Set a new deadline or mark the project done.")
     else:
-        study_days = sum(1 for d in days if project.deadline is None or d.date <= project.deadline)
-        if study_days:
-            extra = math.ceil(shortfall / study_days / 30) / 2  # round up to 0.5 h
-            new_limit = settings.max_minutes_per_day / 60 + extra
+        window = [d for d in days if project.deadline is None or d.date <= project.deadline]
+        planned_dates = {b.date for b in blocks}
+        leftover = {d.date: sum(max(0, _minutes(start, end)) for start, end in d.free) for d in window}
+        # Days that still had study time: some free time left, or a block placed.
+        open_days = [d for d in window if leftover[d.date] > 0 or d.date in planned_dates]
+        blocked_days = len(window) - len(open_days)
+        # Free time the daily limit stopped us from using.
+        capped_days = [d for d in window if d.capacity <= 0 and leftover[d.date] > 0]
+        capped_minutes = sum(leftover[d.date] for d in capped_days)
+
+        if not open_days:
             suggestions.append(
-                f"Raise your daily study limit to about {new_limit:g} hours "
-                f"or widen your work window on the {study_days} study days before the deadline."
+                "There is no free study time before the deadline: time off or commitments "
+                f"block all {len(window)} study day{'s' if len(window) != 1 else ''}. "
+                "Remove some time off or move a commitment."
             )
-        suggestions.append("Move or cancel a commitment before the deadline.")
+        else:
+            if blocked_days:
+                suggestions.append(
+                    f"{blocked_days} of the {len(window)} study days before the deadline have no "
+                    "free time left. Removing some time off would help most."
+                )
+            if capped_minutes >= settings.min_block_minutes:
+                usable = min(shortfall, capped_minutes)
+                extra = math.ceil(usable / len(capped_days) / 30) / 2  # round up to 0.5 h
+                new_limit = settings.max_minutes_per_day / 60 + extra
+                gain = "all of the missing time" if usable >= shortfall else f"about {_fmt_hours(usable):g} more hours"
+                suggestions.append(
+                    f"Raise your daily study limit to about {new_limit:g} hours to fit {gain}: "
+                    f"you have unused free time on {len(capped_days)} "
+                    f"day{'s' if len(capped_days) != 1 else ''} before the deadline."
+                )
+            suggestions.append("Start earlier or end later in your study hours, or move a commitment.")
         suggestions.append(
             f"Ask for an extension, or cut the estimate by {_fmt_hours(shortfall):g} hours."
         )

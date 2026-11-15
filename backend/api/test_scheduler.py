@@ -116,6 +116,51 @@ class SchedulerTests(SimpleTestCase):
         self.assertEqual(plan.blocks, [])
         self.assertEqual(plan.alerts[0].severity, "critical")
 
+    def test_alert_when_every_day_is_off_does_not_suggest_a_higher_limit(self):
+        project = scheduler.Project(id=1, title="Essay", deadline=FRI, estimated_hours=20)
+        days_off = [scheduler.DayOverride(date=date(2026, 11, d)) for d in range(16, 21)]  # Mon-Fri
+        plan = scheduler.build_plan(MON_8AM, scheduler.Settings(), [project], overrides=days_off)
+
+        self.assertEqual(plan.blocks, [])
+        text = " ".join(plan.alerts[0].suggestions)
+        self.assertIn("no free study time", text)
+        self.assertIn("all 5 study days", text)
+        self.assertNotIn("daily study limit", text)
+
+    def test_alert_when_commitments_fill_the_window_does_not_suggest_a_higher_limit(self):
+        job = scheduler.Commitment(
+            title="Job", start_time=time(8), end_time=time(20), recurring=True, weekdays=frozenset(range(7))
+        )
+        project = scheduler.Project(id=1, title="Essay", deadline=FRI, estimated_hours=10)
+        plan = scheduler.build_plan(MON_8AM, scheduler.Settings(), [project], [job])
+
+        text = " ".join(plan.alerts[0].suggestions)
+        self.assertIn("no free study time", text)
+        self.assertNotIn("daily study limit", text)
+
+    def test_alert_counts_only_days_that_still_have_free_time(self):
+        # Mon-Wed off; Thu and Fri can hold 6 h each, so 8 of 20 h are short.
+        project = scheduler.Project(id=1, title="Essay", deadline=FRI, estimated_hours=20)
+        days_off = [scheduler.DayOverride(date=d) for d in (MON, TUE, WED)]
+        plan = scheduler.build_plan(MON_8AM, scheduler.Settings(), [project], overrides=days_off)
+
+        alert = plan.alerts[0]
+        self.assertEqual(alert.shortfall_hours, 8)
+        text = " ".join(alert.suggestions)
+        self.assertIn("3 of the 5 study days", text)
+        # Thu and Fri still have free time the 6 h limit blocks, so a higher limit helps.
+        self.assertIn("Raise your daily study limit", text)
+        self.assertIn("2 days", text)
+
+    def test_alert_suggests_higher_limit_only_when_the_limit_is_what_blocks(self):
+        project = scheduler.Project(id=1, title="Essay", deadline=FRI, estimated_hours=20)
+        low_limit = scheduler.Settings(max_minutes_per_day=2 * 60)
+        plan = scheduler.build_plan(MON_8AM, low_limit, [project])
+
+        text = " ".join(plan.alerts[0].suggestions)
+        self.assertIn("Raise your daily study limit", text)
+        self.assertNotIn("no free time left", text)
+
     def test_parse_weekdays(self):
         self.assertEqual(scheduler.parse_weekdays("0, 2,4,9,x"), frozenset({0, 2, 4}))
         self.assertEqual(scheduler.parse_weekdays("", frozenset({1})), frozenset({1}))
