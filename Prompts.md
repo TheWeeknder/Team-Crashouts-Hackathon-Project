@@ -33,7 +33,7 @@ This file records every use of AI tools on this project, for transparency with t
   - Added `.gitignore` for Python/Django, Node and editor files.
   - Rewrote `README.md` with these sections: problem, solution, features, data inputs table, tech stack, project structure, setup commands and roadmap.
   - Proposed two choices the team hadn't made: Django REST Framework for the API, and earliest-deadline-first as the starting scheduling approach.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 2. Set up AI usage documentation
 
@@ -87,18 +87,20 @@ This file records every use of AI tools on this project, for transparency with t
   app_module = import_module(app_name)
   File \"/usr/lib/python3.13/importlib/**init**.py\", line 88, in import_module
   return \_bootstrap.\_gcd_import(name[level:], package, level)
-  ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  ```^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File \"<frozen importlib._bootstrap>\", line 1387, in \_gcd_import
   File \"<frozen importlib._bootstrap>\", line 1360, in \_find_and_load
   File \"<frozen importlib._bootstrap>\", line 1324, in \_find_and_load_unlocked
   ModuleNotFoundError: No module named 'projects'
+  ```
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
 File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/manage.py\", line 22, in <module>
 main()
-~~~~^^
+
+```^^
 File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/manage.py\", line 18, in main
 execute_from_command_line(sys.argv)
 ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
@@ -330,7 +332,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
   - `docs/ROADMAP.md`: noted the single `api` app in section 1. Rewrote section 2 with a status for each task ID, a table of where the real backend differs from the planned contract, four open decisions (`D1` to `D4`), known bugs, and the remaining work in priority order. Added notes to sections 4 and 6.
   - `README.md`: updated the tech stack, project structure, setup commands and API overview, and split the roadmap checklist into done and still to do.
   - Per the prompt, did not add a `Prompts.md` entry at the time. Entry 26 adds it.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 26. Log the last prompt and commit
 
@@ -339,7 +341,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Used by:** Justin
 - **Prompt:** "update prompt.md with last prompts and commit changes"
 - **Output / changes:** Added entries 25 and 26, and committed `README.md`, `docs/ROADMAP.md` and `Prompts.md` to `Justins-update-branch`.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 27. Codebase health review (no code changes)
 
@@ -393,7 +395,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Output / changes:** Fast-forwarded `jp-apptsx-branch` to `origin/main` so the numbering would not conflict, then added entries 27–31 to `Prompts.md`.
 - **Human review:** JP
 
-### 27. Implement the roadmap 2.3 decisions
+### 32. Implement the roadmap 2.3 decisions
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
@@ -413,9 +415,9 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
     - `PlanForDay` and `CalendarPage` show "Commitment" when `kind` is null.
   - `D3` and `D4` needed no code. The roadmap records them as decided.
   - `docs/ROADMAP.md` and `README.md`: updated the 2.1 statuses (`B2.3`, `B3.2`, `F0.1`, `F2.3`), the 2.2 differences, 2.3 (now "made and built"), the 2.5 priorities, the API table, the test count and the checklist.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
-### 28. Fix the generate save step and time zone handling of `now`
+### 33. Fix the generate save step and time zone handling of `now`
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
@@ -431,18 +433,18 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
     - Fixed docstrings that said the server runs in UTC.
   - `frontend/src/hooks/useGeneratePlan.js`: `localNow()` now sends the browser's offset, so `generate` and `week` are correct from any time zone. Updated the comment in `types/backend.ts`.
   - `backend/api/test_scheduler.py`: 3 tests (26 in total, all passing): a UTC `now` is converted, a `now` without an offset stays local, and a late-evening `now` from UTC+1 still replaces a 17:00 Edmonton block from today. The first and third fail on the old code.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
-### 29. Commit and push the roadmap 2.3 work
+### 34. Commit and push the roadmap 2.3 work
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
 - **Used by:** Justin
 - **Prompt:** "commit and push"
-- **Output / changes:** Committed the work from entries 27 and 28 as `af7d24e` on `justin-reccomendations-roadmap` and pushed it to `origin`. Added this entry in a follow-up commit.
+- **Output / changes:** Committed the work from entries 32 and 33 as `af7d24e` on `justin-reccomendations-roadmap` and pushed it to `origin`. Added this entry in a follow-up commit.
 - **Human review:** _TBD_
 
-### 32. Plan where users enter their own data (no code)
+### 35. Plan where users enter their own data (no code)
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
@@ -451,7 +453,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Output / changes:** Read-only planning. Proposed new Tasks and Schedule pages, quick-add dialogs on the dashboard, planner settings in the avatar menu, a setup checklist for new accounts, and form fields mapped to the backend models. Flagged that the calendar and dashboard still showed mock data. No files changed.
 - **Human review:** JP
 
-### 33. Build the input forms and connect the app to real data
+### 36. Build the input forms and connect the app to real data
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
@@ -466,16 +468,65 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
   - No backend changes. Checked with `tsc`, `eslint`, `vite build`, and a browser test of the full flow against the real Django API on a throwaway database.
 - **Human review:** JP
 
-### 34. Commit, push and log the input forms work
+### 37. Commit, push and log the input forms work
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
 - **Used by:** JP
 - **Prompt:** "please commit and push this, and I am ready for you to add the entry for this work"
-- **Output / changes:** Committed the frontend work (`7870f12`) and merged `origin/main` into `jp-apptsx-branch`. Resolved conflicts in `PlanForDay.tsx`, `CalendarPage.tsx` and `types/api.ts` by keeping this branch's versions, which already included main's `kind`-can-be-null fix. Re-ran the checks, the 26 backend tests and the browser test on the merged code. Added entries 32–34 and pushed.
+- **Output / changes:** Committed the frontend work (`7870f12`) and merged `origin/main` into `jp-apptsx-branch`. Resolved conflicts in `PlanForDay.tsx`, `CalendarPage.tsx` and `types/api.ts` by keeping this branch's versions, which already included main's `kind`-can-be-null fix. Re-ran the checks, the 26 backend tests and the browser test on the merged code. Added entries 35–37 and pushed.
 - **Human review:** JP
 
-### 36. Fix the overload, alert and suggestion problems
+### 38. Review the project and update the README and roadmap
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "Go through the project and update Readme as needed, update Roadmap"
+- **Output / changes:**
+  - Reviewed `main` after PR #26: backend tests (26 pass), frontend build (still fails on the unused `EventItem.tsx` and `EventList.tsx`), and the new pages, forms and `lib/events.ts`.
+  - `docs/ROADMAP.md`:
+    - Rewrote section 2: status for each task now that the Tasks, Schedule, Settings, Dashboard and Calendar views work on real data; updated decisions `D1` and `D2` to the frontend conversion, and added open decision `D5` (two versions of the events and summary logic).
+    - Refreshed the known bugs and the priority list. `seed_demo`, the build fix and a demo rehearsal are now at the top.
+    - Rewrote the section 8 demo steps to match the real buttons ("Generate plan", "+ Add commitment", "Can't study today", "Regenerate", "Mark as done") and added a note that the seed data must leave only 5 free hours for the alert to appear.
+  - `README.md`: updated the tech stack, project structure (`lib/`, `components/forms/`, new pages), test count, and the API notes (the events and week endpoints are unused by the frontend; `now` takes an offset). Added a "Using the app" section and rewrote the done and still-to-do checklists.
+  - `Prompts.md`: renumbered the duplicate entries from the PR #25 merge. Justin's 27–29 became 32–34 and JP's 32–34 became 35–37, and the references inside them were fixed. Added this entry.
+- **Human review:** Justin
+
+### 39. Commit and push the README and roadmap update
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "don't delete, commit and push"
+- **Output / changes:** Committed `README.md`, `docs/ROADMAP.md` and `Prompts.md` (entries 38 and 39) on `justin-roadmap-update` and pushed the branch to `origin`. Per the prompt, did not delete `EventItem.tsx` or `EventList.tsx`, so `npm run build` still fails.
+- **Human review:** Justin
+
+### 40. Fix the build and add the `seed_demo` command
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "Fix the build: delete the unused files in 2.4 so that npm run build passes. B1.4 and B4.4: python manage.py seed_demo with the section 8 data, adjusted to the real models: date deadlines, whole hours, and "Car broke down" as a DayOverride or a one-off commitment. Without it, every demo starts from an empty account."
+- **Output / changes:**
+  - Deleted the unused `frontend/src/components/EventItem.tsx`, `EventList.tsx`, `services/mocks.ts`, and the empty `api/schedule.js` and `hooks/useSchedules.js`. Nothing imported them. `npm run build` and `eslint` pass. The build warns that the bundle is over 500 kB.
+  - `backend/api/management/commands/seed_demo.py`: creates or resets the `demo` account (`--username`, `--password`, `--today`). Dates are relative to the run day. A one-off "Classes and labs" commitment fills the demo day, and weekly shifts and volunteering on T+1 to T+3 leave exactly 5 free hours before the Capstone deadline. The README alert (7 left, 5 available, 2 short) therefore appears on any day and at any time. Past completed blocks match the hours done.
+  - `backend/api/test_seed_demo.py`: 4 tests (30 in total, all passing). They cover the alert on 3 weekdays at 3 times, the reset and the password, completed hours, and demo steps 5 and 6.
+  - "Car broke down" stays a live demo step, entered as a one-off commitment tomorrow 09:00–11:00. The section 8 time (13:00–17:00) fell inside a shift, so the plan would not have changed. Now Capstone turns critical (3 available, 4 short).
+  - `docs/ROADMAP.md`: rewrote section 8 (seed data and steps), updated the 2.1 statuses, marked the build fix as done in 2.4, and renumbered the 2.5 priorities.
+  - `README.md`: added the `seed_demo` setup, sign-in details and new files, removed the known build issue, and updated the test count and checklists.
+- **Human review:** Justin
+
+### 41. Commit and push the build fix and `seed_demo`
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "commit and push"
+- **Output / changes:** Committed the work from entry 40 and this entry on `justin-backend-update` and pushed the branch to `origin`.
+- **Human review:** Justin
+
+### 42. Fix the overload, alert and suggestion problems
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
@@ -491,11 +542,30 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
   - Checked with `tsc`, `eslint`, `vite build`, the backend tests, and a 33-check browser test against the real API on a throwaway database (validation on every form, edit, delete, undo, one-time events, partial time off, the impact step, overload, and alerts after reload).
 - **Human review:** JP
 
-### 37. Make the overview less busy
+### 43. Review the project and update the roadmap
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
-- **Used by:** JP
-- **Prompt:** "could you make the overview look less busy?"
-- **Output / changes:** `App.tsx`: the overview is now a centred headline, one sentence and two buttons, then three short features without borders. Removed the event badge, the "How it helps" example card, the section labels, the four numbered feature cards and the gradient banner. Checked with `tsc`, `eslint`, and screenshots in light, dark and phone width.
-- **Human review:** JP
+- **Used by:** Justin
+- **Prompt:** "go through the project and update the roadmap"
+- **Output / changes:**
+  - Reviewed `main` after PR #29: 34 backend tests pass, no pending migrations, `npm run build` and `eslint` pass. Read the new `usePlanCheck`, `usePlanStatus`, form and scheduler suggestion changes.
+  - `docs/ROADMAP.md`:
+    - Section 2: new summary. Updated statuses for `B3.1`, `B2.4`, `F1.1`, `F1.5`, `F2.1`, `F3.1` and `F4.1`, and decisions `D2` and `D5` (client at-risk flags are now live; capacity is the remaining difference).
+    - Marked the "alerts gone after reload" bug as fixed and added a note on the extra dry run per save. Narrowed priority 5 to the Tasks-page badges.
+    - Section 8: demo steps match the live alerts, the commitment hours note and the time-off impact preview ("Update my plan").
+  - `Prompts.md`: renumbered JP's PR #29 entry from 36 (a duplicate) to 42, and added this entry.
+- **Human review:** Justin
+
+### 44. Commit and push the roadmap update
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "commit and push"
+- **Output / changes:** Committed `docs/ROADMAP.md` and `Prompts.md` (entries 42–44) on `justin-testing` and pushed the branch to `origin`.
+t only when the limit is what blocks the work (with how much it would help). Added 4 tests to `test_scheduler.py`; all 30 backend tests pass.
+  - Added `api/api.d.ts` and the `localNow` type in `useGeneratePlan.d.ts`, so TypeScript files can import them.
+  - Checked with `tsc`, `eslint`, `vite build`, the backend tests, and a 33-check browser test against the real API on a throwaway database (validation on every form, edit, delete, undo, one-time events, partial time off, the impact step, overload, and alerts after reload).
+  **Human review:** Justin
+```
