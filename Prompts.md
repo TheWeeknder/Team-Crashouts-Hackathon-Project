@@ -317,3 +317,25 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Prompt:** "Create PR" (desktop app button: push `cody-scheduler` and open a pull request to `main`)
 - **Output / changes:** Added this entry, pushed `cody-scheduler` and opened a pull request to `main` for the scheduler.
 - **Human review:** _TBD_
+
+### 25. Review the project and update the roadmap and README
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "For this prompt do not write in prompt.md as this is a redundant check. Read through project and update Roadmap and Readme and clarify what still needs to be completed"
+- **Output / changes:**
+  - Read the backend and frontend code, ran the backend tests (16 pass) and the frontend build (fails on `EventItem.tsx` and `EventList.tsx`).
+  - `docs/ROADMAP.md`: noted the single `api` app in section 1. Rewrote section 2 with a status for each task ID, a table of where the real backend differs from the planned contract, four open decisions (`D1` to `D4`), known bugs, and the remaining work in priority order. Added notes to sections 4 and 6.
+  - `README.md`: updated the tech stack, project structure, setup commands and API overview, and split the roadmap checklist into done and still to do.
+  - Per the prompt, did not add a `Prompts.md` entry at the time. Entry 26 adds it.
+- **Human review:** _TBD_
+
+### 26. Log the last prompt and commit
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "update prompt.md with last prompts and commit changes"
+- **Output / changes:** Added entries 25 and 26, and committed `README.md`, `docs/ROADMAP.md` and `Prompts.md` to `Justins-update-branch`.
+- **Human review:** _TBD_
