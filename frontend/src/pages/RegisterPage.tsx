@@ -1,6 +1,6 @@
 import { useId, useState, type FormEvent, type InputHTMLAttributes } from 'react'
 import useRegister, { type RegisterError } from '../hooks/useRegister'
-import './LoginPage.css'
+import AuthLayout from '../components/AuthLayout'
 
 type RegisterPageProps = {
   // Called after the account is created and the user is logged in.
@@ -93,11 +93,14 @@ export default function RegisterPage({ onSuccess, onShowLogin }: RegisterPagePro
   ) {
     const error = errorFor(field)
     return (
-      <>
-        <label htmlFor={id(field)}>{label}</label>
+      <fieldset className="fieldset gap-1">
+        <label htmlFor={id(field)} className="fieldset-legend pb-1 text-sm">
+          {label}
+        </label>
         <input
           id={id(field)}
           name={field}
+          className={`input w-full ${error ? 'input-error' : ''}`}
           required
           disabled={register.isPending}
           aria-invalid={error ? true : undefined}
@@ -105,58 +108,61 @@ export default function RegisterPage({ onSuccess, onShowLogin }: RegisterPagePro
           {...inputProps}
         />
         {error && (
-          <p id={id(`${field}-error`)} className="login-field-error">
+          <p id={id(`${field}-error`)} className="text-xs text-error">
             {error}
           </p>
         )}
-      </>
+      </fieldset>
     )
   }
 
   return (
-    <main className="login-page">
-      <section className="login-card">
-        <p className="login-brand">Adaptive Study Planner</p>
-        <h2>Create an account</h2>
+    <AuthLayout>
+      <div>
+        <h2 className="text-2xl font-bold">Create an account</h2>
+        <p className="mt-1 text-sm text-base-content/60">
+          Start planning around your real schedule.
+        </p>
+      </div>
 
-        <form className="login-form" onSubmit={handleSubmit} noValidate>
-          {renderField('username', 'Username', {
-            type: 'text',
-            autoComplete: 'username',
-            autoCapitalize: 'none',
-            spellCheck: false,
-          })}
-          {renderField('email', 'Email', { type: 'email', autoComplete: 'email' })}
-          {renderField('password', 'Password', {
-            type: 'password',
-            autoComplete: 'new-password',
-            minLength: MIN_PASSWORD_LENGTH,
-          })}
-          {renderField('confirm', 'Confirm password', {
-            type: 'password',
-            autoComplete: 'new-password',
-          })}
+      <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
+        {renderField('username', 'Username', {
+          type: 'text',
+          autoComplete: 'username',
+          autoCapitalize: 'none',
+          spellCheck: false,
+        })}
+        {renderField('email', 'Email', { type: 'email', autoComplete: 'email' })}
+        {renderField('password', 'Password', {
+          type: 'password',
+          autoComplete: 'new-password',
+          minLength: MIN_PASSWORD_LENGTH,
+        })}
+        {renderField('confirm', 'Confirm password', {
+          type: 'password',
+          autoComplete: 'new-password',
+        })}
 
-          {server.general && (
-            <p className="login-error" role="alert">
-              {server.general}
-            </p>
-          )}
-
-          <button type="submit" className="login-button" disabled={register.isPending}>
-            {register.isPending ? 'Creating account…' : 'Create account'}
-          </button>
-        </form>
-
-        {onShowLogin && (
-          <p className="login-switch">
-            Already have an account?{' '}
-            <button type="button" onClick={onShowLogin}>
-              Log in
-            </button>
-          </p>
+        {server.general && (
+          <div className="alert alert-error alert-soft text-sm" role="alert">
+            {server.general}
+          </div>
         )}
-      </section>
-    </main>
+
+        <button type="submit" className="btn btn-primary mt-2 w-full" disabled={register.isPending}>
+          {register.isPending && <span className="loading loading-spinner loading-sm" />}
+          {register.isPending ? 'Creating account…' : 'Create account'}
+        </button>
+      </form>
+
+      {onShowLogin && (
+        <p className="text-center text-sm text-base-content/70">
+          Already have an account?{' '}
+          <button type="button" className="link link-primary font-medium" onClick={onShowLogin}>
+            Log in
+          </button>
+        </p>
+      )}
+    </AuthLayout>
   )
 }

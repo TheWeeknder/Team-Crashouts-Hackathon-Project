@@ -38,47 +38,47 @@ export default function ProgressTracker({
   return (
     <section
       aria-labelledby={headingId}
-      className="rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm"
+      className="card border border-base-300 bg-base-100 p-5 shadow-sm"
     >
       <header className="mb-5">
         <h2 id={headingId} className="text-xl font-semibold">
           Study progress
         </h2>
 
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-base-content/70">
           Weekly hours and overall task completion.
         </p>
       </header>
 
       <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-lg bg-violet-50 p-4">
-          <dt className="text-sm text-violet-700">
+        <div className="rounded-box bg-primary/10 p-4">
+          <dt className="text-sm font-medium text-primary">
             Planned this week
           </dt>
 
-          <dd className="mt-1 text-2xl font-bold text-violet-900">
+          <dd className="mt-1 text-3xl font-bold">
             {formatHours(summary.planned_hours)}
             <span className="ml-1 text-sm font-normal">hrs</span>
           </dd>
         </div>
 
-        <div className="rounded-lg bg-emerald-50 p-4">
-          <dt className="text-sm text-emerald-700">
+        <div className="rounded-box bg-success/10 p-4">
+          <dt className="text-sm font-medium text-success">
             Done this week
           </dt>
 
-          <dd className="mt-1 text-2xl font-bold text-emerald-900">
+          <dd className="mt-1 text-3xl font-bold">
             {formatHours(summary.done_hours)}
             <span className="ml-1 text-sm font-normal">hrs</span>
           </dd>
         </div>
 
-        <div className="rounded-lg bg-amber-50 p-4">
-          <dt className="text-sm text-amber-700">
+        <div className="rounded-box bg-warning/15 p-4">
+          <dt className="text-sm font-medium text-base-content/80">
             Missed this week
           </dt>
 
-          <dd className="mt-1 text-2xl font-bold text-amber-900">
+          <dd className="mt-1 text-3xl font-bold">
             {formatHours(summary.missed_hours)}
             <span className="ml-1 text-sm font-normal">hrs</span>
           </dd>
@@ -90,21 +90,21 @@ export default function ProgressTracker({
           Task progress
         </h3>
 
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-base-content/50">
           Task completion includes all logged hours, not just this week.
           Deadlines are shown in Edmonton time.
         </p>
 
         {summary.tasks.length === 0 ? (
-          <div className="mt-4 rounded-lg bg-slate-50 px-4 py-6 text-center">
+          <div className="mt-4 rounded-box bg-base-200 px-4 py-8 text-center">
             <p className="font-medium">No tasks to track</p>
 
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-base-content/70">
               Add a task to start tracking your progress.
             </p>
           </div>
         ) : (
-          <ul className="mt-4 space-y-4">
+          <ul className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {summary.tasks.map((task) => {
               const percent = clampPercent(task.percent);
               const displayPercent = Math.round(percent);
@@ -112,7 +112,7 @@ export default function ProgressTracker({
               return (
                 <li
                   key={task.task_id}
-                  className="rounded-lg border border-slate-200 p-4"
+                  className="rounded-box border border-base-300 p-4 transition hover:shadow-md"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <h4 className="font-semibold">
@@ -120,13 +120,13 @@ export default function ProgressTracker({
                     </h4>
 
                     {task.at_risk && (
-                      <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900">
+                      <span className="badge badge-warning badge-sm">
                         At risk
                       </span>
                     )}
                   </div>
 
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-base-content/50">
                     Due{" "}
                     <time dateTime={task.deadline}>
                       {deadlineFormatter.format(
@@ -136,7 +136,7 @@ export default function ProgressTracker({
                   </p>
 
                   <div className="mt-4 flex items-center justify-between gap-3 text-sm">
-                    <span className="text-slate-600">
+                    <span className="text-base-content/70">
                       {formatHours(task.completed_hours)} /{" "}
                       {formatHours(task.estimated_hours)} hrs
                     </span>
@@ -147,16 +147,9 @@ export default function ProgressTracker({
                   </div>
 
                   <progress
-                    className={`mt-2 block h-3 w-full overflow-hidden rounded-full border-0 bg-slate-100
-                      [&::-webkit-progress-bar]:rounded-full
-                      [&::-webkit-progress-bar]:bg-slate-100
-                      [&::-webkit-progress-value]:rounded-full
-                      [&::-moz-progress-bar]:rounded-full
-                      ${
-                        task.at_risk
-                          ? "accent-amber-500 [&::-webkit-progress-value]:bg-amber-500 [&::-moz-progress-bar]:bg-amber-500"
-                          : "accent-violet-600 [&::-webkit-progress-value]:bg-violet-600 [&::-moz-progress-bar]:bg-violet-600"
-                      }`}
+                    className={`progress mt-2 h-2.5 w-full ${
+                      task.at_risk ? "progress-warning" : "progress-primary"
+                    }`}
                     value={percent}
                     max={100}
                     aria-label={`${task.title} completion`}

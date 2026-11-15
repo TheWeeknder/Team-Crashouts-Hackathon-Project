@@ -43,7 +43,7 @@ export default function MonthlyCalendar({
 
   return (
     <section aria-label="Monthly study calendar">
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white p-4">
+      <div className="card overflow-x-auto border border-base-300 bg-base-100 p-4 shadow-sm">
         <div className="min-w-[600px]">
           <FullCalendar
             plugins={plugins}
@@ -56,6 +56,7 @@ export default function MonthlyCalendar({
             eventClick={handleEventClick}
             eventDisplay="block"
             dayMaxEvents={3}
+            eventContrastColor="#ffffff"
             editable={false}
             height="auto"
           />
