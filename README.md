@@ -2,7 +2,7 @@
 
 Our project for the **Hack-A-Ton Hackathon**.
 
-**Category:** Education / Wildcard
+**Category:** Education
 
 ---
 
