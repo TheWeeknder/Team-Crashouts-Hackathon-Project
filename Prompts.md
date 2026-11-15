@@ -441,3 +441,36 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Prompt:** "commit and push"
 - **Output / changes:** Committed the work from entries 27 and 28 as `af7d24e` on `justin-reccomendations-roadmap` and pushed it to `origin`. Added this entry in a follow-up commit.
 - **Human review:** _TBD_
+
+### 32. Plan where users enter their own data (no code)
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** JP
+- **Prompt:** "i committed and pushed it myself. right now the pages, components, and seeded data looks good. but there are no areas where we can input our own schedules, tasks, deadlines, and such. could you figure out a way we could squeeze it in? would inputs be integrated within the dashboard? do not code anything on the backend and frontend yet. lets verify"
+- **Output / changes:** Read-only planning. Proposed new Tasks and Schedule pages, quick-add dialogs on the dashboard, planner settings in the avatar menu, a setup checklist for new accounts, and form fields mapped to the backend models. Flagged that the calendar and dashboard still showed mock data. No files changed.
+- **Human review:** _TBD_
+
+### 33. Build the input forms and connect the app to real data
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** JP
+- **Prompt:** "The layout above does work for me. I am okay with building the input forms now, our teammates agreed on it. For the conversion, its okay if the calendar events happen in the frontend. Another thing, I removed the recent ai usage entry due to possible conflicts, you should also pause on typing out the entry for this until i tell you to."
+- **Output / changes:**
+  - New pages: `TasksPage.tsx` (task cards, filters, log hours, edit, delete) and `SchedulePage.tsx` (weekly commitments, one-time events, time off, study-hours summary). Both added to the nav in `App.tsx`, with a Planner settings dialog in the avatar menu.
+  - New forms in `components/forms/`: `TaskForm`, `CommitmentForm`, `DayOverrideForm` (can replan right away), `SettingsForm`, `LogHoursForm`, and shared `Field` helpers. Also new `Modal`, `ConfirmDialog` and `EventDetails` (mark a study session done or undo it, which updates the task's hours and status).
+  - `DashboardPage.tsx`: quick-add dialogs, Generate plan button with the planner's alerts, an "Update needed" badge after inputs change, a 4-step setup checklist, and one week control shared by the calendar and day picker. `CalendarPage.tsx` now uses real data.
+  - New `lib/` helpers: `events.ts` (backend records to calendar events and the weekly summary, including deadlines as all-day events), `dates.ts`, `formErrors.ts`, `progress.ts`, `taskOptions.ts`. New hooks `usePlannerData` and `usePlanStatus`.
+  - Updated `PlanForDay`, `ProgressTracker`, `MonthlyCalendar`, `WeeklyCalendar` and `types/api.ts`: local time zone instead of a hardcoded one, nullable `kind`, a new deadline event type, per-event text colour, and a fix for horizontal overflow on phones.
+  - No backend changes. Checked with `tsc`, `eslint`, `vite build`, and a browser test of the full flow against the real Django API on a throwaway database.
+- **Human review:** _TBD_
+
+### 34. Commit, push and log the input forms work
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** JP
+- **Prompt:** "please commit and push this, and I am ready for you to add the entry for this work"
+- **Output / changes:** Committed the frontend work (`7870f12`) and merged `origin/main` into `jp-apptsx-branch`. Resolved conflicts in `PlanForDay.tsx`, `CalendarPage.tsx` and `types/api.ts` by keeping this branch's versions, which already included main's `kind`-can-be-null fix. Re-ran the checks, the 26 backend tests and the browser test on the merged code. Added entries 32–34 and pushed.
+- **Human review:** _TBD_

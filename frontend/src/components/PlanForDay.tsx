@@ -8,20 +8,15 @@ interface PlanForDayProps {
   onEventClick?: (event: CalendarEvent) => void;
 }
 
-const timeZone = "America/Edmonton";
-
 const dateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
-  timeZone,
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
 });
 
-const timeFormatter = new Intl.DateTimeFormat("en-CA", {
-  timeZone,
+const timeFormatter = new Intl.DateTimeFormat(undefined, {
   hour: "numeric",
   minute: "2-digit",
-  hour12: true,
 });
 
 const headingFormatter = new Intl.DateTimeFormat("en-CA", {
@@ -32,7 +27,7 @@ const headingFormatter = new Intl.DateTimeFormat("en-CA", {
   year: "numeric",
 });
 
-function getEdmontonDate(value: number): string {
+function getLocalDate(value: number): string {
   const parts = dateKeyFormatter.formatToParts(value);
 
   const year = parts.find((part) => part.type === "year")?.value;
@@ -43,7 +38,7 @@ function getEdmontonDate(value: number): string {
 }
 
 function formatSelectedDate(date: ISODate): string {
-  // Treat this as a calendar date, not an Edmonton timestamp.
+  // Treat this as a calendar date, not a timestamp.
   return headingFormatter.format(new Date(`${date}T12:00:00Z`));
 }
 
@@ -72,15 +67,16 @@ export default function PlanForDay({
 
       // End is exclusive: an event ending at midnight does not
       // also belong to the following day.
-      const startDate = getEdmontonDate(start);
-      const lastDate = getEdmontonDate(end - 1);
+      const startDate = getLocalDate(start);
+      const lastDate = getLocalDate(end - 1);
 
       return startDate <= date && date <= lastDate;
     })
-    .sort(
-      (first, second) =>
-        Date.parse(first.start) - Date.parse(second.start),
-    );
+    .sort((first, second) => {
+      // All-day items (deadlines, days off) first, then by start time.
+      if (!!first.allDay !== !!second.allDay) return first.allDay ? -1 : 1;
+      return Date.parse(first.start) - Date.parse(second.start);
+    });
 
   return (
     <section
@@ -96,9 +92,6 @@ export default function PlanForDay({
           <time dateTime={date}>{formatSelectedDate(date)}</time>
         </p>
 
-        <p className="mt-1 text-xs text-base-content/50">
-          All times shown in Edmonton time.
-        </p>
       </header>
 
       {dailyEvents.length === 0 ? (
@@ -112,10 +105,10 @@ export default function PlanForDay({
         <ul className="space-y-3">
           {dailyEvents.map((event) => {
             const startsEarlier =
-              getEdmontonDate(Date.parse(event.start)) < date;
+              getLocalDate(Date.parse(event.start)) < date;
 
             const endsLater =
-              getEdmontonDate(Date.parse(event.end) - 1) > date;
+              getLocalDate(Date.parse(event.end) - 1) > date;
 
             const details = (
               <>
@@ -125,14 +118,18 @@ export default function PlanForDay({
                   <span className="badge badge-ghost badge-sm shrink-0">
                     {event.type === "study"
                       ? "Study"
-                      : event.kind
-                        ? formatLabel(event.kind)
-                        : "Commitment"}
+                      : event.type === "deadline"
+                        ? "Deadline"
+                        : event.kind
+                          ? formatLabel(event.kind)
+                          : "Commitment"}
                   </span>
                 </div>
 
                 <p className="mt-2 text-sm text-base-content/70">
-                  {startsEarlier ? (
+                  {event.allDay ? (
+                    event.type === "deadline" ? "Due today" : "All day"
+                  ) : startsEarlier ? (
                     "Continues from previous day"
                   ) : (
                     <time dateTime={event.start}>
@@ -140,9 +137,9 @@ export default function PlanForDay({
                     </time>
                   )}
 
-                  {" – "}
+                  {!event.allDay && " – "}
 
-                  {endsLater ? (
+                  {event.allDay ? null : endsLater ? (
                     "Continues into next day"
                   ) : (
                     <time dateTime={event.end}>

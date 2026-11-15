@@ -37,7 +37,8 @@ export type CommitmentKind =
   | "work"
   | "extracurricular"
   | "personal"
-  | "event";
+  | "event"
+  | "unavailable";
 
 export interface Commitment {
   id: number;
@@ -112,9 +113,16 @@ export interface Alert {
 interface CalendarEventBase {
   id: string;
   title: string;
+  // Local wall-clock times without an offset, e.g. "2026-11-20T14:00:00".
   start: ISODateTime;
   end: ISODateTime;
   color: string;
+  // Text colour FullCalendar uses on top of `color`.
+  contrastColor?: string;
+  allDay?: boolean;
+  // Id of the backend record this event came from (study block,
+  // commitment, day override or project).
+  record_id?: number;
 }
 
 export interface StudyCalendarEvent extends CalendarEventBase {
@@ -130,14 +138,25 @@ export interface CommitmentCalendarEvent extends CalendarEventBase {
   task_id: null;
   status: null;
   locked: null;
-  // The real backend has no Commitment.kind (removed in migration 0003),
-  // so /planner/events/ sends null.
+  // The backend dropped Commitment.kind (migration 0003), so real data,
+  // including /planner/events/, has null here. "unavailable" marks time
+  // blocked by a day override.
   kind: CommitmentKind | null;
+}
+
+// A project's deadline, shown as an all-day event on its due date.
+export interface DeadlineCalendarEvent extends CalendarEventBase {
+  type: "deadline";
+  task_id: number;
+  status: null;
+  locked: null;
+  kind: null;
 }
 
 export type CalendarEvent =
   | StudyCalendarEvent
-  | CommitmentCalendarEvent;
+  | CommitmentCalendarEvent
+  | DeadlineCalendarEvent;
 
 // ---------- Weekly dashboard ----------
 
@@ -151,7 +170,7 @@ export interface WeeklyDaySummary {
 export interface WeeklyTaskSummary {
   task_id: number;
   title: string;
-  deadline: ISODateTime;
+  deadline: ISODateTime | null;
   estimated_hours: number;
   completed_hours: number;
   percent: number;
