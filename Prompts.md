@@ -33,7 +33,7 @@ This file records every use of AI tools on this project, for transparency with t
   - Added `.gitignore` for Python/Django, Node and editor files.
   - Rewrote `README.md` with these sections: problem, solution, features, data inputs table, tech stack, project structure, setup commands and roadmap.
   - Proposed two choices the team hadn't made: Django REST Framework for the API, and earliest-deadline-first as the starting scheduling approach.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 2. Set up AI usage documentation
 
@@ -87,18 +87,20 @@ This file records every use of AI tools on this project, for transparency with t
   app_module = import_module(app_name)
   File \"/usr/lib/python3.13/importlib/**init**.py\", line 88, in import_module
   return \_bootstrap.\_gcd_import(name[level:], package, level)
-  ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  ```^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File \"<frozen importlib._bootstrap>\", line 1387, in \_gcd_import
   File \"<frozen importlib._bootstrap>\", line 1360, in \_find_and_load
   File \"<frozen importlib._bootstrap>\", line 1324, in \_find_and_load_unlocked
   ModuleNotFoundError: No module named 'projects'
+  ```
 
 During handling of the above exception, another exception occurred:
 
 Traceback (most recent call last):
 File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/manage.py\", line 22, in <module>
 main()
-~~~~^^
+
+```^^
 File \"/home/cody/github/NAIT/Team-Crashouts-Hackathon-Project/backend/manage.py\", line 18, in main
 execute_from_command_line(sys.argv)
 ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
@@ -330,7 +332,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
   - `docs/ROADMAP.md`: noted the single `api` app in section 1. Rewrote section 2 with a status for each task ID, a table of where the real backend differs from the planned contract, four open decisions (`D1` to `D4`), known bugs, and the remaining work in priority order. Added notes to sections 4 and 6.
   - `README.md`: updated the tech stack, project structure, setup commands and API overview, and split the roadmap checklist into done and still to do.
   - Per the prompt, did not add a `Prompts.md` entry at the time. Entry 26 adds it.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 26. Log the last prompt and commit
 
@@ -339,7 +341,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Used by:** Justin
 - **Prompt:** "update prompt.md with last prompts and commit changes"
 - **Output / changes:** Added entries 25 and 26, and committed `README.md`, `docs/ROADMAP.md` and `Prompts.md` to `Justins-update-branch`.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 27. Codebase health review (no code changes)
 
@@ -413,7 +415,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
     - `PlanForDay` and `CalendarPage` show "Commitment" when `kind` is null.
   - `D3` and `D4` needed no code. The roadmap records them as decided.
   - `docs/ROADMAP.md` and `README.md`: updated the 2.1 statuses (`B2.3`, `B3.2`, `F0.1`, `F2.3`), the 2.2 differences, 2.3 (now "made and built"), the 2.5 priorities, the API table, the test count and the checklist.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 33. Fix the generate save step and time zone handling of `now`
 
@@ -431,7 +433,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
     - Fixed docstrings that said the server runs in UTC.
   - `frontend/src/hooks/useGeneratePlan.js`: `localNow()` now sends the browser's offset, so `generate` and `week` are correct from any time zone. Updated the comment in `types/backend.ts`.
   - `backend/api/test_scheduler.py`: 3 tests (26 in total, all passing): a UTC `now` is converted, a `now` without an offset stays local, and a late-evening `now` from UTC+1 still replaces a 17:00 Edmonton block from today. The first and third fail on the old code.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 34. Commit and push the roadmap 2.3 work
 
@@ -489,7 +491,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
     - Rewrote the section 8 demo steps to match the real buttons ("Generate plan", "+ Add commitment", "Can't study today", "Regenerate", "Mark as done") and added a note that the seed data must leave only 5 free hours for the alert to appear.
   - `README.md`: updated the tech stack, project structure (`lib/`, `components/forms/`, new pages), test count, and the API notes (the events and week endpoints are unused by the frontend; `now` takes an offset). Added a "Using the app" section and rewrote the done and still-to-do checklists.
   - `Prompts.md`: renumbered the duplicate entries from the PR #25 merge. Justin's 27–29 became 32–34 and JP's 32–34 became 35–37, and the references inside them were fixed. Added this entry.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 39. Commit and push the README and roadmap update
 
@@ -498,7 +500,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Used by:** Justin
 - **Prompt:** "don't delete, commit and push"
 - **Output / changes:** Committed `README.md`, `docs/ROADMAP.md` and `Prompts.md` (entries 38 and 39) on `justin-roadmap-update` and pushed the branch to `origin`. Per the prompt, did not delete `EventItem.tsx` or `EventList.tsx`, so `npm run build` still fails.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 40. Fix the build and add the `seed_demo` command
 
@@ -513,7 +515,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
   - "Car broke down" stays a live demo step, entered as a one-off commitment tomorrow 09:00–11:00. The section 8 time (13:00–17:00) fell inside a shift, so the plan would not have changed. Now Capstone turns critical (3 available, 4 short).
   - `docs/ROADMAP.md`: rewrote section 8 (seed data and steps), updated the 2.1 statuses, marked the build fix as done in 2.4, and renumbered the 2.5 priorities.
   - `README.md`: added the `seed_demo` setup, sign-in details and new files, removed the known build issue, and updated the test count and checklists.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 41. Commit and push the build fix and `seed_demo`
 
@@ -522,7 +524,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Used by:** Justin
 - **Prompt:** "commit and push"
 - **Output / changes:** Committed the work from entry 40 and this entry on `justin-backend-update` and pushed the branch to `origin`.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 42. Fix the overload, alert and suggestion problems
 
@@ -553,7 +555,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
     - Marked the "alerts gone after reload" bug as fixed and added a note on the extra dry run per save. Narrowed priority 5 to the Tasks-page badges.
     - Section 8: demo steps match the live alerts, the commitment hours note and the time-off impact preview ("Update my plan").
   - `Prompts.md`: renumbered JP's PR #29 entry from 36 (a duplicate) to 42, and added this entry.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 44. Commit and push the roadmap update
 
@@ -562,4 +564,8 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Used by:** Justin
 - **Prompt:** "commit and push"
 - **Output / changes:** Committed `docs/ROADMAP.md` and `Prompts.md` (entries 42–44) on `justin-testing` and pushed the branch to `origin`.
-- **Human review:** _TBD_
+t only when the limit is what blocks the work (with how much it would help). Added 4 tests to `test_scheduler.py`; all 30 backend tests pass.
+  - Added `api/api.d.ts` and the `localNow` type in `useGeneratePlan.d.ts`, so TypeScript files can import them.
+  - Checked with `tsc`, `eslint`, `vite build`, the backend tests, and a 33-check browser test against the real API on a throwaway database (validation on every form, edit, delete, undo, one-time events, partial time off, the impact step, overload, and alerts after reload).
+  **Human review:** Justin
+```
