@@ -393,7 +393,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Output / changes:** Fast-forwarded `jp-apptsx-branch` to `origin/main` so the numbering would not conflict, then added entries 27–31 to `Prompts.md`.
 - **Human review:** _TBD_
 
-### 27. Implement the roadmap 2.3 decisions
+### 32. Implement the roadmap 2.3 decisions
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
@@ -415,7 +415,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
   - `docs/ROADMAP.md` and `README.md`: updated the 2.1 statuses (`B2.3`, `B3.2`, `F0.1`, `F2.3`), the 2.2 differences, 2.3 (now "made and built"), the 2.5 priorities, the API table, the test count and the checklist.
 - **Human review:** _TBD_
 
-### 28. Fix the generate save step and time zone handling of `now`
+### 33. Fix the generate save step and time zone handling of `now`
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
@@ -433,16 +433,16 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
   - `backend/api/test_scheduler.py`: 3 tests (26 in total, all passing): a UTC `now` is converted, a `now` without an offset stays local, and a late-evening `now` from UTC+1 still replaces a 17:00 Edmonton block from today. The first and third fail on the old code.
 - **Human review:** _TBD_
 
-### 29. Commit and push the roadmap 2.3 work
+### 34. Commit and push the roadmap 2.3 work
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
 - **Used by:** Justin
 - **Prompt:** "commit and push"
-- **Output / changes:** Committed the work from entries 27 and 28 as `af7d24e` on `justin-reccomendations-roadmap` and pushed it to `origin`. Added this entry in a follow-up commit.
+- **Output / changes:** Committed the work from entries 32 and 33 as `af7d24e` on `justin-reccomendations-roadmap` and pushed it to `origin`. Added this entry in a follow-up commit.
 - **Human review:** _TBD_
 
-### 32. Plan where users enter their own data (no code)
+### 35. Plan where users enter their own data (no code)
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
@@ -451,7 +451,7 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Output / changes:** Read-only planning. Proposed new Tasks and Schedule pages, quick-add dialogs on the dashboard, planner settings in the avatar menu, a setup checklist for new accounts, and form fields mapped to the backend models. Flagged that the calendar and dashboard still showed mock data. No files changed.
 - **Human review:** _TBD_
 
-### 33. Build the input forms and connect the app to real data
+### 36. Build the input forms and connect the app to real data
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
@@ -466,11 +466,36 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
   - No backend changes. Checked with `tsc`, `eslint`, `vite build`, and a browser test of the full flow against the real Django API on a throwaway database.
 - **Human review:** _TBD_
 
-### 34. Commit, push and log the input forms work
+### 37. Commit, push and log the input forms work
 
 - **Date:** 2026-11-14
 - **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
 - **Used by:** JP
 - **Prompt:** "please commit and push this, and I am ready for you to add the entry for this work"
-- **Output / changes:** Committed the frontend work (`7870f12`) and merged `origin/main` into `jp-apptsx-branch`. Resolved conflicts in `PlanForDay.tsx`, `CalendarPage.tsx` and `types/api.ts` by keeping this branch's versions, which already included main's `kind`-can-be-null fix. Re-ran the checks, the 26 backend tests and the browser test on the merged code. Added entries 32–34 and pushed.
+- **Output / changes:** Committed the frontend work (`7870f12`) and merged `origin/main` into `jp-apptsx-branch`. Resolved conflicts in `PlanForDay.tsx`, `CalendarPage.tsx` and `types/api.ts` by keeping this branch's versions, which already included main's `kind`-can-be-null fix. Re-ran the checks, the 26 backend tests and the browser test on the merged code. Added entries 35–37 and pushed.
+- **Human review:** _TBD_
+
+### 38. Review the project and update the README and roadmap
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "Go through the project and update Readme as needed, update Roadmap"
+- **Output / changes:**
+  - Reviewed `main` after PR #26: backend tests (26 pass), frontend build (still fails on the unused `EventItem.tsx` and `EventList.tsx`), and the new pages, forms and `lib/events.ts`.
+  - `docs/ROADMAP.md`:
+    - Rewrote section 2: status for each task now that the Tasks, Schedule, Settings, Dashboard and Calendar views work on real data; updated decisions `D1` and `D2` to the frontend conversion, and added open decision `D5` (two versions of the events and summary logic).
+    - Refreshed the known bugs and the priority list. `seed_demo`, the build fix and a demo rehearsal are now at the top.
+    - Rewrote the section 8 demo steps to match the real buttons ("Generate plan", "+ Add commitment", "Can't study today", "Regenerate", "Mark as done") and added a note that the seed data must leave only 5 free hours for the alert to appear.
+  - `README.md`: updated the tech stack, project structure (`lib/`, `components/forms/`, new pages), test count, and the API notes (the events and week endpoints are unused by the frontend; `now` takes an offset). Added a "Using the app" section and rewrote the done and still-to-do checklists.
+  - `Prompts.md`: renumbered the duplicate entries from the PR #25 merge. Justin's 27–29 became 32–34 and JP's 32–34 became 35–37, and the references inside them were fixed. Added this entry.
+- **Human review:** _TBD_
+
+### 39. Commit and push the README and roadmap update
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "don't delete, commit and push"
+- **Output / changes:** Committed `README.md`, `docs/ROADMAP.md` and `Prompts.md` (entries 38 and 39) on `justin-roadmap-update` and pushed the branch to `origin`. Per the prompt, did not delete `EventItem.tsx` or `EventList.tsx`, so `npm run build` still fails.
 - **Human review:** _TBD_
