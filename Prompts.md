@@ -339,3 +339,55 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Prompt:** "update prompt.md with last prompts and commit changes"
 - **Output / changes:** Added entries 25 and 26, and committed `README.md`, `docs/ROADMAP.md` and `Prompts.md` to `Justins-update-branch`.
 - **Human review:** _TBD_
+
+### 27. Codebase health review (no code changes)
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** JP
+- **Prompt:** "Hello claude, please analyze my entire codebase, especially the frontend, and make sure everything is currently working properly. do not write any code right now, simply tell me any mistakes and obstacles."
+- **Output / changes:** Read-only review. Ran `tsc -b`, `eslint`, `vite build`, `manage.py check`, `makemigrations --check` and `manage.py test`, then reported problems: styling not wired up (App.css was still the Vite template, Tailwind not installed), dashboard and calendar still on mock data, frontend and backend data shapes don't match, `/accounts/me/` returns the password hash, `db.sqlite3.bak` committed, no tests. No files changed.
+- **Human review:** _TBD_
+
+### 28. Tailwind CSS + daisyUI styling pass
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** JP
+- **Prompt:** "could you tackle the styling? implement tailwind css and/or daisyui to App.tsx and the respective pages to make most of the app look attractive."
+- **Output / changes:**
+  - Installed `tailwindcss@4.3.3`, `@tailwindcss/vite@4.3.3` and `daisyui@5.7.50` as dev dependencies and added the Tailwind plugin to `vite.config.ts`.
+  - Replaced the Vite starter `index.css` with Tailwind + daisyUI and two custom themes (`planner` light, `planner-dark` dark) in violet to match the FullCalendar palette. Removed `App.css` and `pages/LoginPage.css`.
+  - `index.html`: real page title, Inter font.
+  - Restyled `App.tsx` (sticky navbar with mobile menu, hero, stats card, feature cards, footer), `LoginPage.tsx` and `RegisterPage.tsx` (new shared `components/AuthLayout.tsx`), `CalendarPage.tsx` (calendar plus event-details side panel) and `DashboardPage.tsx`, which now also shows `ProgressTracker` and `PlanForDay` with a day picker, still using mock data. No logic changed.
+  - Switched `PlanForDay`, `ProgressTracker`, `MonthlyCalendar` and `WeeklyCalendar` to theme colours so dark mode works; the calendars now always use white event text.
+  - `main.tsx`: sets a `data-color-scheme` attribute on `<html>` from the OS dark-mode setting, so FullCalendar's dark palette turns on with daisyUI's.
+  - Checked with `tsc -b`, `eslint` and `vite build`, plus headless-browser screenshots of every page in light, dark and mobile against a mock API.
+- **Human review:** _TBD_
+
+### 29. Restore App.css to fix a merge conflict
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** JP
+- **Prompt:** "on github it is saying that I have a conflict happening on app.css because i forgot to pull before a push. could you revert whatever chances you made in app.css temporarily? and also do not add the ai usage prompt on prompt.md for now, we will do that later to prevent conflicts too."
+- **Output / changes:** Restored `frontend/src/App.css` to its version from before entry 28. `main` had edited the file while this branch deleted it. Ran a test merge against `origin/main` to confirm no conflicts were left. Held back the `Prompts.md` entries until now (this entry and the next three).
+- **Human review:** _TBD_
+
+### 30. Commit and push the App.css fix
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** JP
+- **Prompt:** "yes please"
+- **Output / changes:** Committed the restored `App.css` (`9098d0a`) and pushed it to `jp-apptsx-branch`. That branch was later merged in PR #23.
+- **Human review:** _TBD_
+
+### 31. Add the held-back AI usage entries
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** JP
+- **Prompt:** "i am ready to add the ai usage entries"
+- **Output / changes:** Fast-forwarded `jp-apptsx-branch` to `origin/main` so the numbering would not conflict, then added entries 27–31 to `Prompts.md`.
+- **Human review:** _TBD_
