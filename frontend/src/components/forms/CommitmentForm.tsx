@@ -2,13 +2,16 @@ import { useId, useState, type FormEvent } from "react";
 
 import useCommitments from "../../hooks/useCommitments";
 import usePlanStatus from "../../hooks/usePlanStatus";
+import usePlannerSettings from "../../hooks/usePlannerSettings";
 import {
+  formatTime,
   formatWeekdays,
   fromTimeInput,
   parseWeekdays,
   timeToMinutes,
   toTimeInput,
   todayISO,
+  weekdayOf,
 } from "../../lib/dates";
 import { splitServerErrors } from "../../lib/formErrors";
 import type { Commitment } from "../../types/backend";
@@ -35,6 +38,7 @@ interface CommitmentFormProps {
 export default function CommitmentForm({ commitment, onDone }: CommitmentFormProps) {
   const { createCommitment, updateCommitment } = useCommitments();
   const { markStale } = usePlanStatus();
+  const { settings } = usePlannerSettings();
   const mutation = commitment ? updateCommitment : createCommitment;
   const id = useId();
 
@@ -49,6 +53,26 @@ export default function CommitmentForm({ commitment, onDone }: CommitmentFormPro
   const [clientErrors, setClientErrors] = useState<Partial<Record<FieldName, string>>>({});
 
   const server = splitServerErrors(mutation.error, FIELDS);
+
+  // How much of the study window this commitment covers on its days.
+  // (Same defaults as the backend scheduler when settings are empty.)
+  const windowStart = settings.data?.day_start_time || "09:00:00";
+  const windowEnd = settings.data?.day_end_time || "19:00:00";
+  const studyDays = parseWeekdays(settings.data?.work_days);
+  const affectsStudyDay = repeats
+    ? weekdays.some((d) => studyDays.length === 0 || studyDays.includes(d))
+    : !!date && (studyDays.length === 0 || studyDays.includes(weekdayOf(date)));
+  const windowMinutes = timeToMinutes(windowEnd) - timeToMinutes(windowStart);
+  const overlapMinutes =
+    start && end && timeToMinutes(end) > timeToMinutes(start) && affectsStudyDay
+      ? Math.max(
+          0,
+          Math.min(timeToMinutes(end), timeToMinutes(windowEnd)) -
+            Math.max(timeToMinutes(start), timeToMinutes(windowStart)),
+        )
+      : 0;
+  const coversWindow = windowMinutes > 0 && overlapMinutes >= windowMinutes;
+  const windowLabel = `${formatTime(windowStart)}–${formatTime(windowEnd)}`;
   const errorFor = (field: FieldName) => clientErrors[field] ?? server.fields[field];
 
   function validate() {
@@ -179,6 +203,19 @@ export default function CommitmentForm({ commitment, onDone }: CommitmentFormPro
           />
         </Field>
       </div>
+
+      {overlapMinutes > 0 && (
+        <p
+          aria-live="polite"
+          className={`rounded-field px-3 py-2 text-sm ${coversWindow ? "bg-warning/15" : "bg-info/10 text-base-content/80"}`}
+        >
+          {coversWindow
+            ? `This covers all of your study hours (${windowLabel}) on ${repeats ? "these days" : "this day"}, so no study can be planned then.`
+            : `This uses ${Math.round((overlapMinutes / 60) * 10) / 10} h of your study hours (${windowLabel}) on ${
+                repeats ? "each of these days" : "this day"
+              }. The planner will study around it.`}
+        </p>
+      )}
 
       {repeats && (
         <details className="collapse-arrow collapse rounded-box border border-base-300">

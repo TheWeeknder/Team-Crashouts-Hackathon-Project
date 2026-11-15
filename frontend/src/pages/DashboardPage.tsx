@@ -9,6 +9,7 @@ import CommitmentForm from "../components/forms/CommitmentForm";
 import DayOverrideForm from "../components/forms/DayOverrideForm";
 import TaskForm from "../components/forms/TaskForm";
 import useGeneratePlan from "../hooks/useGeneratePlan";
+import usePlanCheck from "../hooks/usePlanCheck";
 import usePlanStatus, { type PlanStatus } from "../hooks/usePlanStatus";
 import usePlannerData from "../hooks/usePlannerData";
 import {
@@ -19,7 +20,7 @@ import {
   todayISO,
 } from "../lib/dates";
 import { buildCalendarEvents, buildWeeklySummary } from "../lib/events";
-import type { ISODate } from "../types/backend";
+import type { ISODate, PlanAlert } from "../types/backend";
 
 type DialogName = "task" | "commitment" | "override" | null;
 
@@ -38,6 +39,11 @@ export default function DashboardPage({ onOpenSettings }: DashboardPageProps) {
   const data = usePlannerData();
   const { generatePlan } = useGeneratePlan();
   const { status, recordPlan } = usePlanStatus();
+  const hasTasks = data.projects.length > 0;
+  // Live alerts: a dry run of the planner with the current inputs. Loads
+  // with the page and refreshes after every save, so it survives reloads.
+  const check = usePlanCheck({ enabled: hasTasks });
+  const alerts = useMemo(() => (hasTasks ? (check.data?.alerts ?? []) : []), [hasTasks, check.data]);
 
   const today = todayISO();
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
@@ -70,11 +76,11 @@ export default function DashboardPage({ onOpenSettings }: DashboardPageProps) {
           projects: data.projects,
           blocks: data.blocks,
           settings: data.settings,
-          alerts: status.alerts,
+          alerts,
         },
         weekStart,
       ),
-    [data.projects, data.blocks, data.settings, status.alerts, weekStart],
+    [data.projects, data.blocks, data.settings, alerts, weekStart],
   );
 
   const selectedEvent = events.find((e) => e.id === selectedEventId) ?? null;
@@ -89,9 +95,12 @@ export default function DashboardPage({ onOpenSettings }: DashboardPageProps) {
     generatePlan.mutate(undefined, { onSuccess: recordPlan });
   }
 
-  const hasTasks = data.projects.length > 0;
   const hasPlan = data.blocks.length > 0;
-  const showChecklist = !data.isLoading && (!hasTasks || !hasPlan);
+  const hasGenerated = hasPlan || status.generatedAt !== null;
+  // The checklist guides new accounts until their first plan. Alerts are
+  // shown separately whenever the planner has something to warn about, so
+  // a shortfall stays visible even when time off removes every block.
+  const showChecklist = !data.isLoading && (!hasTasks || !hasGenerated);
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8">
@@ -104,7 +113,7 @@ export default function DashboardPage({ onOpenSettings }: DashboardPageProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          {status.stale && hasTasks && (
+          {status.stale && hasTasks && hasGenerated && (
             <span className="badge badge-warning badge-sm">Update needed</span>
           )}
           <button
@@ -151,20 +160,31 @@ export default function DashboardPage({ onOpenSettings }: DashboardPageProps) {
         </div>
       )}
 
-      {showChecklist ? (
+      {hasTasks && (
+        <PlanAlerts
+          status={status}
+          alerts={alerts}
+          checked={check.isSuccess}
+          checkError={check.error?.message ?? null}
+          hasPlan={hasPlan}
+          hasGenerated={hasGenerated}
+          onRegenerate={runPlan}
+          isPlanning={generatePlan.isPending}
+        />
+      )}
+
+      {showChecklist && (
         <SetupChecklist
           hasSettings={data.settings !== null}
           hasTasks={hasTasks}
           hasCommitments={data.commitments.length > 0}
-          hasPlan={hasPlan}
+          hasPlan={hasGenerated}
           isPlanning={generatePlan.isPending}
           onSettings={onOpenSettings}
           onTask={() => setDialog("task")}
           onCommitment={() => setDialog("commitment")}
           onPlan={runPlan}
         />
-      ) : (
-        <PlanAlerts status={status} onRegenerate={runPlan} isPlanning={generatePlan.isPending} />
       )}
 
       {/* Week control shared by the calendar and the day picker. */}
@@ -300,16 +320,26 @@ export default function DashboardPage({ onOpenSettings }: DashboardPageProps) {
 
 function PlanAlerts({
   status,
+  alerts,
+  checked,
+  checkError,
+  hasPlan,
+  hasGenerated,
   onRegenerate,
   isPlanning,
 }: {
   status: PlanStatus;
+  alerts: PlanAlert[];
+  checked: boolean;
+  checkError: string | null;
+  hasPlan: boolean;
+  hasGenerated: boolean;
   onRegenerate: () => void;
   isPlanning: boolean;
 }) {
   return (
     <div className="space-y-3">
-      {status.stale && (
+      {status.stale && hasGenerated && (
         <div role="status" className="alert alert-warning alert-soft">
           <span>You changed your tasks or schedule. Regenerate to update your plan.</span>
           <button type="button" className="btn btn-sm" onClick={onRegenerate} disabled={isPlanning}>
@@ -318,13 +348,28 @@ function PlanAlerts({
         </div>
       )}
 
-      {status.generatedAt && !status.stale && status.alerts.length === 0 && (
+      {checkError && (
+        <div role="alert" className="alert alert-error alert-soft">
+          <span>Could not check your deadlines: {checkError}</span>
+        </div>
+      )}
+
+      {checked && hasPlan && !status.stale && alerts.length === 0 && (
         <div role="status" className="alert alert-success alert-soft">
           <span>Everything fits before its deadline. Nice.</span>
         </div>
       )}
 
-      {status.alerts.map((alert) => (
+      {alerts.length > 0 && hasGenerated && !hasPlan && !status.stale && (
+        <div role="alert" className="alert alert-error alert-soft">
+          <span>
+            <strong>No study time is left in your plan.</strong> Time off, commitments or your study
+            hours leave no room before your deadlines. See below for what to change.
+          </span>
+        </div>
+      )}
+
+      {alerts.map((alert) => (
         <div
           key={alert.project}
           role="alert"

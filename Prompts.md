@@ -474,3 +474,19 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Prompt:** "please commit and push this, and I am ready for you to add the entry for this work"
 - **Output / changes:** Committed the frontend work (`7870f12`) and merged `origin/main` into `jp-apptsx-branch`. Resolved conflicts in `PlanForDay.tsx`, `CalendarPage.tsx` and `types/api.ts` by keeping this branch's versions, which already included main's `kind`-can-be-null fix. Re-ran the checks, the 26 backend tests and the browser test on the merged code. Added entries 32–34 and pushed.
 - **Human review:** _TBD_
+
+### 36. Fix the overload, alert and suggestion problems
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** JP
+- **Prompt:** "fix all of the suggested fixes you proposed."
+- **Output / changes:**
+  - `DashboardPage.tsx`: the setup checklist shows only until the first plan, and alerts show whenever there are any, so a shortfall stays visible even when time off removes every study block. Added a "No study time is left in your plan" banner. "Update needed" only appears after a first plan.
+  - New `hooks/usePlanCheck.ts`: loads alerts live from a dry run of `POST planner/generate/` (saves nothing), so they survive reloads and refresh after every save. `usePlanStatus.ts` now uses its own cache key, because the `['planner']` refresh added on main had been wiping it after every save, and it keeps the "Update needed" state in `localStorage` per account.
+  - `DayOverrideForm.tsx`: notes while filling in ("Nth day off this week", not a study day, already off, date passed). After saving, it shows a dry-run preview of the impact on each deadline, then **Update my plan** or **Not now**.
+  - `CommitmentForm.tsx`: shows how many hours of the study window the commitment uses, and warns when it covers all of them.
+  - `backend/api/scheduler.py`: alert suggestions count only days that still have free time, give a clear message when no study time is left, and suggest a higher daily limit only when the limit is what blocks the work (with how much it would help). Added 4 tests to `test_scheduler.py`; all 30 backend tests pass.
+  - Added `api/api.d.ts` and the `localNow` type in `useGeneratePlan.d.ts`, so TypeScript files can import them.
+  - Checked with `tsc`, `eslint`, `vite build`, the backend tests, and a 33-check browser test against the real API on a throwaway database (validation on every form, edit, delete, undo, one-time events, partial time off, the impact step, overload, and alerts after reload).
+- **Human review:** _TBD_
