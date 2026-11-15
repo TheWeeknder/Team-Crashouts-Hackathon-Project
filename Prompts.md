@@ -499,3 +499,27 @@ django.core.exceptions.ImproperlyConfigured: Cannot import 'projects'. Check tha
 - **Prompt:** "don't delete, commit and push"
 - **Output / changes:** Committed `README.md`, `docs/ROADMAP.md` and `Prompts.md` (entries 38 and 39) on `justin-roadmap-update` and pushed the branch to `origin`. Per the prompt, did not delete `EventItem.tsx` or `EventList.tsx`, so `npm run build` still fails.
 - **Human review:** _TBD_
+
+### 40. Fix the build and add the `seed_demo` command
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "Fix the build: delete the unused files in 2.4 so that npm run build passes. B1.4 and B4.4: python manage.py seed_demo with the section 8 data, adjusted to the real models: date deadlines, whole hours, and "Car broke down" as a DayOverride or a one-off commitment. Without it, every demo starts from an empty account."
+- **Output / changes:**
+  - Deleted the unused `frontend/src/components/EventItem.tsx`, `EventList.tsx`, `services/mocks.ts`, and the empty `api/schedule.js` and `hooks/useSchedules.js`. Nothing imported them. `npm run build` and `eslint` pass. The build warns that the bundle is over 500 kB.
+  - `backend/api/management/commands/seed_demo.py`: creates or resets the `demo` account (`--username`, `--password`, `--today`). Dates are relative to the run day. A one-off "Classes and labs" commitment fills the demo day, and weekly shifts and volunteering on T+1 to T+3 leave exactly 5 free hours before the Capstone deadline. The README alert (7 left, 5 available, 2 short) therefore appears on any day and at any time. Past completed blocks match the hours done.
+  - `backend/api/test_seed_demo.py`: 4 tests (30 in total, all passing). They cover the alert on 3 weekdays at 3 times, the reset and the password, completed hours, and demo steps 5 and 6.
+  - "Car broke down" stays a live demo step, entered as a one-off commitment tomorrow 09:00–11:00. The section 8 time (13:00–17:00) fell inside a shift, so the plan would not have changed. Now Capstone turns critical (3 available, 4 short).
+  - `docs/ROADMAP.md`: rewrote section 8 (seed data and steps), updated the 2.1 statuses, marked the build fix as done in 2.4, and renumbered the 2.5 priorities.
+  - `README.md`: added the `seed_demo` setup, sign-in details and new files, removed the known build issue, and updated the test count and checklists.
+- **Human review:** _TBD_
+
+### 41. Commit and push the build fix and `seed_demo`
+
+- **Date:** 2026-11-14
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "commit and push"
+- **Output / changes:** Committed the work from entry 40 and this entry on `justin-backend-update` and pushed the branch to `origin`.
+- **Human review:** _TBD_
