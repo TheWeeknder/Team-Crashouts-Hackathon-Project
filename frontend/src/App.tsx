@@ -127,7 +127,7 @@ function App() {
                 className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-sm font-extrabold text-primary-content shadow-md"
                 aria-hidden="true"
               >
-                CP
+                TC
               </span>
               <span className="hidden flex-col leading-tight sm:flex">
                 <span className="font-bold">Adaptive Study Planner</span>
@@ -138,7 +138,10 @@ function App() {
             </button>
           </div>
 
-          <nav className="navbar-center hidden lg:flex" aria-label="Main navigation">
+          <nav
+            className="navbar-center hidden lg:flex"
+            aria-label="Main navigation"
+          >
             <ul className="menu menu-horizontal gap-1 rounded-full bg-base-200 p-1">
               {navButtons}
             </ul>
@@ -196,8 +199,8 @@ function App() {
               </h1>
 
               <p className="mx-auto mt-5 max-w-xl text-lg text-base-content/70">
-                Add your deadlines and commitments. We'll find the time to
-                study and warn you early if something won't fit.
+                Add your deadlines and commitments. We'll find the time to study
+                and warn you early if something won't fit.
               </p>
 
               <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -221,7 +224,10 @@ function App() {
             <section aria-label="Features" className="mt-20">
               <ul className="grid gap-8 text-left sm:grid-cols-3 sm:gap-6">
                 {features.map((feature) => (
-                  <li key={feature.title} className="border-l-2 border-primary/40 pl-4">
+                  <li
+                    key={feature.title}
+                    className="border-l-2 border-primary/40 pl-4"
+                  >
                     <h2 className="font-semibold">{feature.title}</h2>
                     <p className="mt-1 text-sm text-base-content/60">
                       {feature.description}

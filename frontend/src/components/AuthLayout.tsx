@@ -20,7 +20,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             className="grid size-11 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-sm font-extrabold text-primary-content shadow-md"
             aria-hidden="true"
           >
-            CP
+            TC
           </span>
           <div className="leading-tight">
             <p className="font-bold">Adaptive Study Planner</p>
