@@ -43,7 +43,7 @@ export default function WeeklyCalendar({
 
   return (
     <section aria-label="Weekly study calendar">
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white p-4">
+      <div className="card overflow-x-auto border border-base-300 bg-base-100 p-4 shadow-sm">
         <div className="min-w-[700px]">
           <FullCalendar
             plugins={plugins}
@@ -54,6 +54,7 @@ export default function WeeklyCalendar({
             headerToolbar={headerToolbar}
             events={events}
             eventClick={handleEventClick}
+            eventContrastColor="#ffffff"
             editable={false}
             allDaySlot={false}
             slotMinTime="06:00:00"

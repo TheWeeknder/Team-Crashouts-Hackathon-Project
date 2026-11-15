@@ -1,111 +1,98 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import "tailwindcss";
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+@plugin "daisyui" {
+  themes: false;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* Light theme: violet primary to match the FullCalendar purple palette. */
+@plugin "daisyui/theme" {
+  name: "planner";
+  default: true;
+  color-scheme: light;
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(97.5% 0.008 290);
+  --color-base-300: oklch(93% 0.015 290);
+  --color-base-content: oklch(24% 0.03 285);
+  --color-primary: oklch(54% 0.24 293);
+  --color-primary-content: oklch(98% 0.01 293);
+  --color-secondary: oklch(62% 0.17 255);
+  --color-secondary-content: oklch(98% 0.01 255);
+  --color-accent: oklch(72% 0.15 175);
+  --color-accent-content: oklch(22% 0.04 175);
+  --color-neutral: oklch(28% 0.03 285);
+  --color-neutral-content: oklch(96% 0.01 285);
+  --color-info: oklch(68% 0.14 235);
+  --color-info-content: oklch(98% 0.01 235);
+  --color-success: oklch(65% 0.15 155);
+  --color-success-content: oklch(98% 0.01 155);
+  --color-warning: oklch(80% 0.15 75);
+  --color-warning-content: oklch(28% 0.06 75);
+  --color-error: oklch(62% 0.21 20);
+  --color-error-content: oklch(98% 0.01 20);
+
+  --radius-selector: 1rem;
+  --radius-field: 0.6rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
 }
 
+/* Dark theme, used when the OS prefers dark. */
+@plugin "daisyui/theme" {
+  name: "planner-dark";
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: oklch(21% 0.02 285);
+  --color-base-200: oklch(18% 0.02 285);
+  --color-base-300: oklch(27% 0.025 285);
+  --color-base-content: oklch(93% 0.01 285);
+  --color-primary: oklch(70% 0.19 293);
+  --color-primary-content: oklch(18% 0.04 293);
+  --color-secondary: oklch(70% 0.14 255);
+  --color-secondary-content: oklch(18% 0.04 255);
+  --color-accent: oklch(76% 0.13 175);
+  --color-accent-content: oklch(18% 0.04 175);
+  --color-neutral: oklch(32% 0.03 285);
+  --color-neutral-content: oklch(94% 0.01 285);
+  --color-info: oklch(72% 0.13 235);
+  --color-info-content: oklch(18% 0.04 235);
+  --color-success: oklch(72% 0.14 155);
+  --color-success-content: oklch(18% 0.04 155);
+  --color-warning: oklch(82% 0.14 75);
+  --color-warning-content: oklch(22% 0.05 75);
+  --color-error: oklch(68% 0.19 20);
+  --color-error-content: oklch(18% 0.04 20);
+
+  --radius-selector: 1rem;
+  --radius-field: 0.6rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+}
+
+html,
+body,
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  min-height: 100%;
 }
 
 body {
-  margin: 0;
+  @apply bg-base-200 text-base-content antialiased;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* FullCalendar sits inside our cards; let it inherit the theme text colour. */
+.fc {
+  color: inherit;
 }

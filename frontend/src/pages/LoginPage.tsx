@@ -2,7 +2,7 @@ import { useId, type FormEvent } from 'react'
 import useLogin from '../hooks/useLogin'
 import useLogout from '../hooks/useLogout'
 import useCurrentUser from '../hooks/useCurrentUser'
-import './LoginPage.css'
+import AuthLayout from '../components/AuthLayout'
 
 type LoginPageProps = {
   // Called after a successful login, e.g. to navigate to the dashboard.
@@ -33,42 +33,50 @@ export default function LoginPage({ onSuccess, onShowRegister }: LoginPageProps)
 
   if (isLoading) {
     return (
-      <main className="login-page">
-        <p className="login-status">Checking your session…</p>
-      </main>
+      <AuthLayout>
+        <div className="flex flex-col items-center gap-3 py-8 text-base-content/70">
+          <span className="loading loading-spinner loading-lg text-primary" />
+          <p>Checking your session…</p>
+        </div>
+      </AuthLayout>
     )
   }
 
   if (user) {
     return (
-      <main className="login-page">
-        <section className="login-card">
-          <h2>You are logged in</h2>
-          <p className="login-status">
-            Signed in as <strong>{user.username}</strong>.
-          </p>
-          <button type="button" className="login-button" onClick={logout}>
-            Log out
-          </button>
-        </section>
-      </main>
+      <AuthLayout>
+        <h2 className="text-2xl font-bold">You are logged in</h2>
+        <p className="text-base-content/70">
+          Signed in as <strong>{user.username}</strong>.
+        </p>
+        <button type="button" className="btn btn-primary mt-2" onClick={logout}>
+          Log out
+        </button>
+      </AuthLayout>
     )
   }
 
   const error = login.error?.message ?? null
 
   return (
-    <main className="login-page">
-      <section className="login-card">
-        <p className="login-brand">Adaptive Study Planner</p>
-        <h2>Log in</h2>
+    <AuthLayout>
+      <div>
+        <h2 className="text-2xl font-bold">Welcome back</h2>
+        <p className="mt-1 text-sm text-base-content/60">
+          Log in to see your study plan.
+        </p>
+      </div>
 
-        <form className="login-form" onSubmit={handleSubmit}>
-          <label htmlFor={usernameId}>Username</label>
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <fieldset className="fieldset gap-1">
+          <label htmlFor={usernameId} className="fieldset-legend pb-1 text-sm">
+            Username
+          </label>
           <input
             id={usernameId}
             name="username"
             type="text"
+            className="input w-full"
             autoComplete="username"
             autoCapitalize="none"
             spellCheck={false}
@@ -76,38 +84,44 @@ export default function LoginPage({ onSuccess, onShowRegister }: LoginPageProps)
             disabled={login.isPending}
             aria-describedby={error ? errorId : undefined}
           />
+        </fieldset>
 
-          <label htmlFor={passwordId}>Password</label>
+        <fieldset className="fieldset gap-1">
+          <label htmlFor={passwordId} className="fieldset-legend pb-1 text-sm">
+            Password
+          </label>
           <input
             id={passwordId}
             name="password"
             type="password"
+            className="input w-full"
             autoComplete="current-password"
             required
             disabled={login.isPending}
             aria-describedby={error ? errorId : undefined}
           />
+        </fieldset>
 
-          {error && (
-            <p id={errorId} className="login-error" role="alert">
-              {error}
-            </p>
-          )}
-
-          <button type="submit" className="login-button" disabled={login.isPending}>
-            {login.isPending ? 'Logging in…' : 'Log in'}
-          </button>
-        </form>
-
-        {onShowRegister && (
-          <p className="login-switch">
-            No account yet?{' '}
-            <button type="button" onClick={onShowRegister}>
-              Create one
-            </button>
-          </p>
+        {error && (
+          <div id={errorId} className="alert alert-error alert-soft text-sm" role="alert">
+            {error}
+          </div>
         )}
-      </section>
-    </main>
+
+        <button type="submit" className="btn btn-primary w-full" disabled={login.isPending}>
+          {login.isPending && <span className="loading loading-spinner loading-sm" />}
+          {login.isPending ? 'Logging in…' : 'Log in'}
+        </button>
+      </form>
+
+      {onShowRegister && (
+        <p className="text-center text-sm text-base-content/70">
+          No account yet?{' '}
+          <button type="button" className="link link-primary font-medium" onClick={onShowRegister}>
+            Create one
+          </button>
+        </p>
+      )}
+    </AuthLayout>
   )
 }

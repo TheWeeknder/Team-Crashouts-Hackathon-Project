@@ -85,26 +85,26 @@ export default function PlanForDay({
   return (
     <section
       aria-labelledby={headingId}
-      className="rounded-xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm"
+      className="card border border-base-300 bg-base-100 p-5 shadow-sm"
     >
       <header className="mb-5">
         <h2 id={headingId} className="text-xl font-semibold">
           Plan for the day
         </h2>
 
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-base-content/70">
           <time dateTime={date}>{formatSelectedDate(date)}</time>
         </p>
 
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-base-content/50">
           All times shown in Edmonton time.
         </p>
       </header>
 
       {dailyEvents.length === 0 ? (
-        <div className="rounded-lg bg-slate-50 px-4 py-6 text-center">
+        <div className="rounded-box bg-base-200 px-4 py-8 text-center">
           <p className="font-medium">Nothing scheduled</p>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-base-content/70">
             No study sessions or commitments are scheduled for this day.
           </p>
         </div>
@@ -122,14 +122,14 @@ export default function PlanForDay({
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="font-semibold">{event.title}</h3>
 
-                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
+                  <span className="badge badge-ghost badge-sm shrink-0">
                     {event.type === "study"
                       ? "Study"
                       : formatLabel(event.kind)}
                   </span>
                 </div>
 
-                <p className="mt-2 text-sm text-slate-600">
+                <p className="mt-2 text-sm text-base-content/70">
                   {startsEarlier ? (
                     "Continues from previous day"
                   ) : (
@@ -151,12 +151,12 @@ export default function PlanForDay({
 
                 {event.type === "study" && (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-violet-50 px-2 py-1 text-xs text-violet-700">
+                    <span className="badge badge-primary badge-soft badge-sm">
                       {formatLabel(event.status)}
                     </span>
 
                     {event.locked && (
-                      <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
+                      <span className="badge badge-ghost badge-sm">
                         Locked
                       </span>
                     )}
@@ -166,7 +166,7 @@ export default function PlanForDay({
             );
 
             const cardClassName =
-              "block w-full rounded-lg border border-slate-200 " +
+              "block w-full rounded-field border border-base-300 bg-base-100 " +
               "border-l-4 p-4 text-left";
 
             return (
@@ -174,7 +174,7 @@ export default function PlanForDay({
                 {onEventClick ? (
                   <button
                     type="button"
-                    className={`${cardClassName} transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600`}
+                    className={`${cardClassName} transition-colors hover:bg-base-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary`}
                     style={{ borderLeftColor: event.color }}
                     onClick={() => onEventClick(event)}
                     aria-label={`View details for ${event.title}`}
