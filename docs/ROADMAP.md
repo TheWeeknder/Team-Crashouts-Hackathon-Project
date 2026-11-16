@@ -14,10 +14,10 @@ Each task has an ID (for example `B1.2` or `F2.1`). Use the ID in branch names, 
 | --- | --- | --- |
 | Justin | Backend | Django setup, models, CRUD API, auth, demo seed data |
 | Cody | Backend | Scheduling algorithm (`api/scheduler.py`), feasibility alerts, replanning, calendar and dashboard endpoints |
-
-> The team chose **one Django app** (`backend/api/`) instead of the four apps first planned. Accounts, projects, schedules and the planner all live in `api/models.py`, `api/views.py` and `api/urls.py`.
 | Robin | Frontend | Tailwind and daisyUI setup, routing and layout, API client, login, task, commitment and settings pages |
 | JP | Frontend | Shared TypeScript types and mock data, calendar view, weekly dashboard, alerts panel, block actions |
+
+> The team chose **one Django app** (`backend/api/`) instead of the four apps first planned. Accounts, projects, schedules and the planner all live in `api/models.py`, `api/views.py` and `api/urls.py`.
 
 The work splits into two pairs. Each pair shares one part of the API, so each pair talks often.
 
@@ -28,9 +28,9 @@ The work splits into two pairs. Each pair shares one part of the API, so each pa
 
 ---
 
-## 2. Current state of the repo (2026-11-14)
+## 2. Current state of the repo (2026-11-15)
 
-Checked against `main` after PR #29 (`ce2d846`).
+Checked against `main` after PR #33 (`374d793`). Since PR #29, `main` has only small changes: shorter landing-page copy and title, the logo changed from "CP" to "TC", and Justin and JP filled in their human reviews. The AI prompt log is now split into one file per person (see 2.4). Everything below is re-checked: all 34 backend tests pass, there are no pending migrations, and `npm run build` and `eslint` pass.
 
 **Summary:** the core demo flow now works end to end in the browser. A user can:
 - sign up and enter projects, commitments, time off and study hours
@@ -38,7 +38,7 @@ Checked against `main` after PR #29 (`ce2d846`).
 - see live alerts for projects that don't fit, which stay after a reload, and preview the effect of time off before saving it
 - mark sessions done, which updates project progress
 
-All 34 backend tests pass, there are no pending migrations, and `npm run build` and `eslint` pass. `python manage.py seed_demo` creates the demo account. What's left: the demo has not been rehearsed, Phase 5 polish and pitch work has not started, and the security and validation gaps are still open. The plan does not update itself after a change: alerts update at once, but the user clicks "Update my plan" or "Regenerate" to move the blocks.
+`python manage.py seed_demo` creates the demo account. What's left: the demo has not been rehearsed, Phase 5 polish and pitch work has not started, and the security and validation gaps are still open. The plan does not update itself after a change: alerts update at once, but the user clicks "Update my plan" or "Regenerate" to move the blocks.
 
 ### 2.1 Status by task
 
@@ -109,7 +109,7 @@ The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `Pro
 
 | ID | Decision | Outcome |
 | --- | --- | --- |
-| `D1` | How do the components get calendar-shaped data? | **Changed: the conversion happens in the frontend** (Prompts.md entry 36). `src/lib/events.ts` turns projects, blocks, commitments and overrides into `CalendarEvent`s. It expands recurring commitments and adds deadline markers. The backend `/planner/events/` endpoint and the `useCalendarEvents` hook also exist, but nothing uses them. See `D5`. |
+| `D1` | How do the components get calendar-shaped data? | **Changed: the conversion happens in the frontend** (shared log #36, now [JP's log](../prompts/JP.md)). `src/lib/events.ts` turns projects, blocks, commitments and overrides into `CalendarEvent`s. It expands recurring commitments and adds deadline markers. The backend `/planner/events/` endpoint and the `useCalendarEvents` hook also exist, but nothing uses them. See `D5`. |
 | `D2` | How does the weekly progress view get its data? | **Changed: built in the frontend.** `buildWeeklySummary` in `lib/events.ts` builds it. At-risk flags come from the live `usePlanCheck` alerts. `/planner/week/` and `useWeeklySummary` also exist, unused. |
 | `D3` | How does a "low-energy day" work? | **Done.** A `DayOverride` that blocks part or all of a day, entered with "Can't study today" or on the Schedule page. |
 | `D4` | Auth | **Done.** Basic auth for the demo. |
@@ -123,8 +123,12 @@ The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `Pro
 - **Fixed in PR #29:** alerts were gone after a reload. `usePlanCheck` now loads them live.
 - **Two requests per change:** every save refetches `usePlanCheck`, which runs the full planner as a dry run. This is fine for one user, but watch it if the planner gets slower.
 - **Time zone:** tzdata 2026.6 gives `America/Edmonton` a **-06:00** offset in November 2026. The backend and `lib/dates.ts` use the real zone. Do not hard-code `-07:00`, as the section 4 examples do.
-- `frontend/package.json` lists `@fullcalendar/react` twice. `backend/db.sqlite3.bak` is tracked in git. `frontend/README.md` is still the Vite template.
-- Prompts.md had duplicate entry numbers twice: 27–29 after the PR #25 merge (fixed in entry 38), and JP's PR #29 entry, numbered 36 (renumbered to 42 in entry 43). Pull `main` before adding an entry (section 7).
+- **Still open:** `frontend/package.json` lists `@fullcalendar/react` twice, `backend/db.sqlite3.bak` is tracked in git, and `frontend/README.md` is still the Vite template.
+- **Fixed on 2026-11-15:** the shared `Prompts.md` had duplicate entry numbers twice, because entries from different branches collided. Each person now logs in their own file in [`prompts/`](../prompts/), numbered from 1. `Prompts.md` is now an index for judges, with a frozen table that maps the old shared numbers (1 to 44) to the new files. Older references such as "entry 36" use the shared numbers.
+- **AI log gaps:**
+  - Cody has 20 of 21 entries with **Human review** still `_TBD_`, and Justin has 3.
+  - JP's reviews contain only the name "JP". Judges will look for what was kept, edited or rejected, so add a sentence to each.
+  - Robin's log is empty. If Robin used AI, add the entries. If not, write "No AI used" in the file so the judges see it was checked.
 
 ### 2.5 What still needs to be done, in priority order
 
@@ -133,8 +137,10 @@ The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `Pro
 3. **`D5` (Cody and JP):** decide which version of the events and summary logic to keep, then delete the other or document it.
 4. **Security and data quality (Justin):** a write-only password, server-side validation (`B1.2`), and CRUD and permission tests in `api/tests.py` (`B2.4`).
 5. **Small UX gap (Robin):** at-risk badges on the Tasks page (`F3.1`). `usePlanCheck` already has the alerts, so this is a few lines.
-6. **Phase 5:** `docs/ALGORITHM.md` (Cody), visual polish (Robin), slides and the demo script (JP), and the "Human review" fields in Prompts.md (all).
-7. **Stretch, only if 1–6 are done:** `react-router`, automatic replanning after a change (`B4.3`), decimal hours, and "Missed" and "Lock" for blocks.
+6. **Phase 5:** `docs/ALGORITHM.md` (Cody), visual polish (Robin), slides and the demo script (JP).
+7. **AI log (`A5.2`, all):** fill in the human reviews in your own file in `prompts/` (see the AI log gaps in 2.4). Cody has the most left (20).
+8. **Small cleanup (anyone, 10 minutes):** remove the duplicate `@fullcalendar/react` key, untrack `backend/db.sqlite3.bak`, and replace `frontend/README.md` with a short note that points to the root README.
+9. **Stretch, only if 1–8 are done:** `react-router`, automatic replanning after a change (`B4.3`), decimal hours, and "Missed" and "Lock" for blocks.
 
 ---
 
@@ -396,7 +402,7 @@ Checkpoint 4 (about hour 22): feature freeze. After this point, merge bug fixes 
 | `B5.2` | Cody | Write `docs/ALGORITHM.md`: one page and one diagram that explain the planner to the judges. |
 | `F5.1` | Robin | Visual polish: spacing, colors, mobile width, loading and empty states. |
 | `F5.2` | JP | Pitch slides and the demo script in `docs/`. Lead the rehearsal. |
-| `A5.2` | All | Fill in the "Human review" field of your own entries in `Prompts.md`. |
+| `A5.2` | All | Fill in the "Human review" field of your own entries in `prompts/<your name>.md`. |
 
 ---
 
@@ -442,7 +448,7 @@ A known limit: EDF fills the earliest days first, so later days stay empty. If t
 
 | File | Rule |
 | --- | --- |
-| `Prompts.md` | Append only. Pull `main` before you add an entry. If two entries get the same number, renumber yours. |
+| `prompts/<your name>.md` | Each person writes only to their own file, so logs from different branches do not conflict. Number entries in your file from 1. Do not add new entries to `Prompts.md`: it is the index, and its table of the old shared log is frozen. |
 | `backend/config/settings.py` | Justin owns it. Ask Justin before you change it. |
 | `backend/config/urls.py` | All endpoints live in `backend/api/urls.py`. The root file only includes it under `api/v1/`. |
 | `frontend/src/types/api.ts` | JP owns it after Phase 0. A change here needs the same change in the backend serializer and in section 4. |
@@ -452,7 +458,7 @@ A known limit: EDF fills the earliest days first, so later days stay empty. If t
 - The feature works against the real API, not only the mocks.
 - The browser console and the Django log show no errors.
 - The pull request is merged to `main`.
-- If you used AI, `Prompts.md` has an entry.
+- If you used AI, your file in `prompts/` has an entry.
 
 ---
 
@@ -485,7 +491,7 @@ Steps:
 5. Life happens: **+ Add commitment** "Car broke down", one-off, **tomorrow 09:00 to 11:00**. The form shows how much study time the event uses. After you save it, the alert turns **critical** at once, with 3 available and 4 missing. The "Update needed" banner appears. Click **Regenerate**, and the Capstone blocks for tomorrow disappear.
 6. Click **Can't study today** and choose the day the Math blocks start (T+4), for the whole day. After you save, the form previews the impact on each deadline: Math still fits. Click **Update my plan**. The Math blocks move to later days.
 7. Click a study block and choose **Mark as done**. The project's progress bar moves.
-8. Close with one sentence on EDF and point at `Prompts.md` for AI transparency.
+8. Close with one sentence on EDF and point at `Prompts.md` (with one log per person in `prompts/`) for AI transparency.
 
 ---
 
