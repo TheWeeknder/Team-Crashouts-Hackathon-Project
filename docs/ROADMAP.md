@@ -52,7 +52,7 @@ Checked against `main` after PR #34 (`352d4fe`), plus the 2.3 and 2.4 follow-up 
 | --- | --- | --- |
 | `B0.1` | ✅ | DRF, CORS, `TIME_ZONE = "America/Edmonton"`, `api/v1/` route. Auth is token auth, with Basic auth as a fallback (`D4`). |
 | `B0.2`, `B1.5`, `B2.1`, `B3.1` | ✅ | EDF planner in `backend/api/scheduler.py`, with free-time building, block placement and alerts. Since PR #29, suggestions count only days that still have free time, say clearly when no study time is left, and suggest a higher daily limit only when the limit is what blocks the work. |
-| `B1.1` | 🟡 | All six models exist and are in Django admin. Field names and types differ from section 4.1 (see 2.2). |
+| `B1.1` | 🟡 | All six models exist and are in Django admin. Field names and types differ from the original plan (see 2.2). Section 4.1 now describes the real models. |
 | `B1.2` | 🟡 | A viewset for each model, scoped to `request.user`. Account responses no longer include the password (it is write only), and project hours cannot be negative. Since 2026-11-16 the serializers enforce the form rules (see 2.5, item 9.3), with error keys that match the form fields. Settings values that are empty or 0 still mean "use the default". `completed_hours ≤ estimated_hours` is checked only when a request changes the hours, because done sessions may take a task past its estimate. Still open: one settings row per user (item 9.4). |
 | `B1.3` | ✅ | Sign up is `POST /accounts/`, and the current user is `GET /accounts/me/`. Since 2026-11-16, `POST /auth/login/` returns a DRF token and the user, and `POST /auth/logout/` deletes the token. The frontend sends `Authorization: Token <token>`. Register does not create `PlannerSettings`, which falls back to the scheduler defaults. |
 | `B1.4`, `B2.5`, `B4.4` | ✅ | `python manage.py seed_demo` creates or resets the `demo` account with the section 8 data (`api/management/commands/seed_demo.py`). Tests in `api/test_seed_demo.py` check the 7 / 5 / 2 alert on several weekdays and times, and demo steps 5 and 6. |
@@ -84,11 +84,11 @@ Checked against `main` after PR #34 (`352d4fe`), plus the 2.3 and 2.4 follow-up 
 | `F4.2` | 🟡 | "Mark as done" and undo in `EventDetails`. There are no "Missed" or "Lock" actions, because the backend has no such fields. A past block that is not done shows as missed. |
 | Phase 5 | ❌ | No `docs/ALGORITHM.md`, slides or rehearsal yet. |
 
-### 2.2 The real backend differs from the contract in section 4
+### 2.2 The real backend differs from the original plan
 
-The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `ProgressTracker`) use the section 4 shapes in `types/api.ts`. The CRUD endpoints return the shapes in `types/backend.ts`. The frontend bridges the gap in `src/lib/events.ts`, which converts backend records into the `types/api.ts` shapes (decision `D1` in 2.3).
+Section 4 now describes the real backend (updated 2026-11-16). This table keeps the differences from the contract planned in hour 0, because some frontend code still uses the planned shapes. The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `ProgressTracker`) use the planned shapes in `types/api.ts`. The CRUD endpoints return the shapes in `types/backend.ts`. The frontend bridges the gap in `src/lib/events.ts`, which converts backend records into the `types/api.ts` shapes (decision `D1` in 2.3).
 
-| Planned (section 4) | Real backend (`api/models.py`) |
+| Planned in hour 0 | Real backend (`api/models.py`, section 4) |
 | --- | --- |
 | Token auth, `/auth/register/`, `/auth/login/`, `/auth/me/` | Token auth with `POST /auth/login/` and `POST /auth/logout/`, sign-up at `POST /accounts/`, and `GET /accounts/me/`. Basic auth still works for curl and the browsable API. |
 | Route prefix `/api/` | `/api/v1/` |
@@ -128,7 +128,7 @@ The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `Pro
   - **Token auth.** Basic auth re-hashed the password on every request, and Django's hasher is slow on purpose. The app now logs in once with `POST /auth/login/` and sends `Authorization: Token <token>`, which costs one database lookup per request. `POST /auth/logout/` revokes the token. Basic auth stays enabled as a fallback for curl and the browsable API. Run `python manage.py migrate` to create the token table.
   - **Study blocks by date range.** `/study-blocks/` accepts `?date_from=` and `?date_to=` (inclusive). The frontend loads only blocks from the last 120 days onward (`DAYS_BACK` in `usePlannerData`, the same window the monthly calendar shows), so the download no longer grows over a term. All pages share that one cached list, so week and month navigation still costs no requests.
   - **Alerts-only plan check.** `POST /planner/generate/` accepts `alerts_only: true`: a dry run that returns only `{now, alerts}`. `usePlanCheck` and the time-off impact preview use it.
-- **Time zone:** tzdata 2026.6 gives `America/Edmonton` a **-06:00** offset in November 2026. The backend and `lib/dates.ts` use the real zone. Do not hard-code `-07:00`, as the section 4 examples do.
+- **Time zone:** tzdata 2026.6 gives `America/Edmonton` a **-06:00** offset in November 2026. The backend and `lib/dates.ts` use the real zone. Do not hard-code `-07:00`, as the examples in the original plan did.
 - **Fixed on 2026-11-15:** the duplicate `@fullcalendar/react` key in `frontend/package.json` is removed, `backend/db.sqlite3.bak` is no longer tracked (the file stays on disk, and `.gitignore` now ignores `*.sqlite3.bak`), and `frontend/README.md` is a short note that points to the root README.
 - **Fixed on 2026-11-15:** the shared `Prompts.md` had duplicate entry numbers twice, because entries from different branches collided. Each person now logs in their own file in [`prompts/`](../prompts/), numbered from 1. `Prompts.md` is now an index for judges, with a frozen table that maps the old shared numbers (1 to 44) to the new files. Older references such as "entry 36" use the shared numbers.
 - **AI log gaps** (still open; only each person can fill in their own reviews):
@@ -174,137 +174,194 @@ The team makes these choices together before people split up. The recommended op
 
 ---
 
-## 4. Shared API contract
+## 4. API contract
 
-> **Note (2026-11-14):** this is the contract the team **planned**. The real backend differs. Section 2.2 lists the differences, and `frontend/src/types/backend.ts` has the real shapes. Use `types/backend.ts` for the CRUD endpoints. The frontend converts their data into the 4.3 and 4.4 shapes in `src/lib/events.ts`. The backend `/planner/events/` and `/planner/week/` also return those shapes, with the differences listed in 2.2.
+> **Updated 2026-11-16:** this section now describes the **real backend** (`backend/api/`), checked against `models.py`, `serializers.py`, `views.py` and `urls.py` on branch `justin-backend-update`. The contract first planned in hour 0 is gone. Section 2.2 lists how the real API differs from that plan. The TypeScript types are in `frontend/src/types/backend.ts`. `types/api.ts` still holds the older planned shapes, which the calendar components read after `src/lib/events.ts` converts the data (decision `D1`).
 
-Everyone codes against this contract from the start. The frontend uses mock data that matches it until the real endpoints exist. If you change the contract, update this section and tell your pair in the team chat.
+If you change the API, update this section, `types/backend.ts` and the serializer tests in the same pull request, and tell your pair in the team chat.
 
-All routes start with `/api/`. All routes except register and login need the header `Authorization: Token <token>`. Each user sees only their own data.
+**Base URL and auth.** All routes start with `/api/v1/`. Every route needs `Authorization: Token <token>`, except sign-up (`POST /accounts/`) and login. Basic auth also works, for curl and the browsable API. Each user sees and changes only their own rows: the server sets `user` from the login and ignores any `user` in the request body.
+
+**Times.** The server time zone is `America/Edmonton`. Dates (`"2026-11-20"`) and times (`"14:00:00"`) are stored without an offset and mean Edmonton wall-clock time. The spare planner endpoints (4.4, 4.5) return datetimes with the real offset, which is **`-06:00`** in November 2026 (tzdata 2026.6). Do not hard-code an offset.
+
+**Errors.** A validation error returns `400` with field names as keys, for example `{"end_time": ["End must be after start (same day)."]}`. The keys match the form fields, so `splitServerErrors` shows each message next to its input.
 
 ### 4.1 Data models
 
-`projects.Task`: one piece of work with a deadline.
+All six models are in `api/models.py`. Every model except `Account` has a `user` foreign key, which the server fills in.
+
+`Account`: extends Django's `AbstractUser`.
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `id` | int | |
-| `title` | string | |
-| `course` | string | Optional, for example "CMPE 2000" |
-| `deadline` | datetime | |
-| `estimated_hours` | decimal | Greater than 0 |
-| `completed_hours` | decimal | 0 or more. Not more than `estimated_hours`. |
-| `remaining_hours` | decimal | Read only. `estimated_hours - completed_hours`. |
-| `priority` | int | 1 high, 2 medium, 3 low |
-| `status` | string | `todo`, `in_progress` or `done` |
-| `color` | string | Optional hex color for the calendar |
+| `username` | string | Unique |
+| `email` | string | Unique, required |
+| `password` | string | Write only. Never returned. |
+| `first_name`, `last_name` | string or null | Optional |
+| `date_joined`, `last_login` | datetime | Read by the client. `is_staff`, `is_superuser`, `groups` and `user_permissions` are also returned, but sign-up and updates cannot grant them. |
 
-`schedules.Commitment`: time that is not free for study.
+`Project`: one piece of work with a deadline. The UI calls it a "task".
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `id` | int | |
-| `title` | string | For example "Shift at Safeway" |
-| `kind` | string | `work`, `extracurricular`, `personal` or `event` |
-| `recurring` | bool | If true, use `weekdays`. If false, use `date`. |
-| `weekdays` | int list | 0 is Monday, 6 is Sunday |
-| `date` | date | One-off events only |
-| `start_time`, `end_time` | time | `end_time` is after `start_time` |
-| `active_from`, `active_until` | date | Optional limits for a recurring commitment |
+| `title` | string | Required |
+| `deadline` | date or null | A date, not a datetime. Treated as due at the end of that day. |
+| `estimated_hours` | number | 2 decimals, 0 or more. Default 0. |
+| `completed_hours` | number | 2 decimals, 0 or more. Not more than `estimated_hours` when a request changes either one. Done study blocks may take it past the estimate. |
+| `remaining_hours` | number | Read only. `max(estimated − completed, 0)`. |
+| `priority` | int | 0 to 10, higher is more important. Default 0. |
+| `status` | string | `incompleted`, `in_progress` (default), `completed` or `skipped`. The server keeps it in step with the hours (see below). |
+| `colour` | string | One of `#E57373`, `#FFB74D`, `#FFF176`, `#81C784`, `#4DB6AC`, `#64B5F6`, `#9575CD`, `#F06292`, `#FFFFFF` (default). |
 
-`schedules.PlannerSettings`: one row per user. The register view creates it with default values.
+Status rules, applied in `Project.save()` for the API, Django admin and scripts alike:
+- `skipped` never changes by itself.
+- Hours reach the estimate (and the estimate is above 0): `completed`.
+- Hours drop below the estimate while `completed`: back to `in_progress`.
+- Any hours done while `incompleted`: `in_progress`.
+- A project with no estimate can be marked `completed` by hand.
 
-| Field | Type | Default |
-| --- | --- | --- |
-| `day_start`, `day_end` | time | `09:00`, `19:00` |
-| `work_days` | int list | `[0, 1, 2, 3, 4, 5, 6]` |
-| `max_hours_per_day` | decimal | 6 |
-| `min_block_minutes` | int | 30 |
-| `max_block_minutes` | int | 120 |
-| `break_minutes` | int | 15 |
-
-`schedules.DayOverride`: a change to the study capacity of one date. This is how a low-motivation day or a sick day enters the planner.
+`Commitment`: time that is not free for study.
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `date` | date | Unique per user |
-| `max_hours` | decimal | 0 means a day off |
-| `reason` | string | `low_energy`, `sick`, `emergency` or `other` |
+| `id` | int | |
+| `title` | string | For example "Shift at work" |
+| `recuring` | bool | Spelled with one `r`. If true, use `weekdays`. If false, use `date`. |
+| `weekdays` | string | Text such as `"0,2,4"`, 0 is Monday and 6 is Sunday. Required if `recuring`. |
+| `date` | date or null | Required if not `recuring` |
+| `start_time`, `end_time` | time | Both required. `end_time` is after `start_time` on the same day. |
+| `active_from`, `active_to` | date or null | Optional limits for a recurring commitment. `active_to` is on or after `active_from`. |
+
+`PlannerSettings`: the user's study window and limits. `/planner-settings/` is a list: a user can have 0 or more rows, and the planner uses the first one. Sign-up does not create a row. An empty or 0 value means "use the default".
+
+| Field | Type | Default | Rule |
+| --- | --- | --- | --- |
+| `day_start_time`, `day_end_time` | time or null | `09:00`, `19:00` | End after start |
+| `work_days` | string | `"0,1,2,3,4,5,6"` | Weekday numbers, as in `weekdays` |
+| `max_hours_per_day` | int | 6 | 1 to 24 |
+| `min_block_minutes` | int | 30 | At least 15 |
+| `max_block_minutes` | int | 120 | At least 15, and at least `min_block_minutes` |
+| `break_minutes` | int or null | 15 | 0 or more. Here 0 means no break, and only null uses the default. |
+
+`DayOverride`: time off on one date. It **blocks** time, it does not lower the daily limit.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | int | |
+| `date` | date | Required. Not unique: a date can have several overrides. |
+| `start_time`, `end_time` | time or null | Both or neither. Neither blocks the whole day. Both: `end_time` after `start_time`. |
+| `reason` | string | Free text. The frontend sends values such as `low_energy` or `sick`. |
 | `note` | string | Optional |
 
-`planner.StudyBlock`: one scheduled session of work on a task.
+`StudyBlock`: one planned session of work on a project.
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `id` | int | |
-| `task` | int | Task ID |
-| `start`, `end` | datetime | |
-| `status` | string | `planned`, `done` or `missed` |
-| `locked` | bool | If true, a replan does not move this block |
+| `project` | int | Project ID. Must be one of your own projects. |
+| `date` | date | |
+| `start_time`, `end_time` | time | |
+| `completed` | bool | Default false |
 
-`Alert` is not stored. The planner computes it each time.
+There is no `missed`, `locked` or `status` field. A past block that is not completed counts as missed. Progress rules, applied in `StudyBlock.save()` in one transaction with the project row locked:
+- Setting `completed` to true adds the block's length to the project's `completed_hours` (a 45-minute block adds 0.75). Setting it back to false removes it.
+- Changing the times or project of a completed block moves the hours to match.
+- Deleting a completed block keeps the hours, because the study time happened.
+
+### 4.2 Endpoints
+
+The six resources use DRF viewsets: `GET` and `POST` on the list, `GET`, `PUT`, `PATCH` and `DELETE` on `{id}/`. Lists are not paginated.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| POST | `/accounts/` | Sign up. Body `{username, email, password, ...}`. No login needed. Returns the account. |
+| GET | `/accounts/me/` | The logged-in account |
+| GET, PATCH, … | `/accounts/{id}/` | Your own account. Sending `password` changes it. |
+| POST | `/auth/login/` | Body `{username, password}`. Returns `{token, user}`. Logging in again returns the same token. |
+| POST | `/auth/logout/` | Deletes the token. Returns `204`. |
+| GET, POST | `/projects/` | Filter `?status=`. Sort `?ordering=deadline`, `priority` or `title` (prefix `-` to reverse). Default order: deadline. |
+| GET, PATCH, PUT, DELETE | `/projects/{id}/` | One project |
+| GET, POST | `/commitments/` | Filter `?date=`. Sort by `date` or `start_time`. |
+| GET, PATCH, PUT, DELETE | `/commitments/{id}/` | One commitment |
+| GET, POST | `/planner-settings/` | Settings rows (see 4.1) |
+| GET, PATCH, PUT, DELETE | `/planner-settings/{id}/` | One settings row |
+| GET, POST | `/day-overrides/` | Filter `?date=`. Sorted by date. |
+| GET, PATCH, PUT, DELETE | `/day-overrides/{id}/` | One day override |
+| GET, POST | `/study-blocks/` | Filter `?project=`, `?date=`, `?completed=`, and the range `?date_from=` and `?date_to=` (both inclusive). Sorted by date and start time. |
+| GET, PATCH, PUT, DELETE | `/study-blocks/{id}/` | One block. `PATCH {"completed": true}` marks it done and updates the project (4.1). |
+| POST | `/planner/generate/` | Build a new plan. See 4.3. |
+| GET | `/planner/events/?start=&end=` | Spare: calendar events in a range. See 4.4. |
+| GET | `/planner/week/?start=&now=` | Spare: weekly summary. See 4.5. |
+
+There is no `/planner/alerts/` and no `progress/` endpoint. Alerts come from `generate`, and progress comes from marking blocks done.
+
+### 4.3 Plan generation
+
+`POST /planner/generate/`. Every field in the body is optional.
+
+| Field | Meaning |
+| --- | --- |
+| `now` | The browser's time, for example `"2026-11-18T14:30-06:00"`. A time with an offset is converted to Edmonton time. A time without one is taken as Edmonton time. Default: the server's clock. |
+| `dry_run` | If true, return the plan without saving it. Proposed blocks have `"id": null`. |
+| `alerts_only` | If true, a dry run that returns only `{now, alerts}`. The live alert check (`usePlanCheck`) and the time-off preview use it. |
+
+Completed blocks and blocks that have already started stay. The planner works around them and replaces every other block. The delete and the inserts happen in one transaction.
 
 ```json
 {
-  "task_id": 4,
-  "task_title": "Capstone report",
-  "deadline": "2026-11-21T23:59:00-07:00",
-  "remaining_hours": 7,
-  "available_hours": 5,
-  "shortfall_hours": 2,
-  "severity": "warning",
-  "suggestions": [
-    "Raise your daily limit from 6 to 7 hours on 2 days before Friday.",
-    "Lower the priority of \"Reading notes\", which is due later.",
-    "Ask for an extension or cut the estimate by 2 hours."
+  "now": "2026-11-18T14:30",
+  "blocks": [
+    { "id": 41, "user": 3, "project": 4, "date": "2026-11-19",
+      "start_time": "09:00:00", "end_time": "11:00:00", "completed": false }
+  ],
+  "alerts": [
+    {
+      "project": 4,
+      "project_title": "Capstone report",
+      "deadline": "2026-11-21",
+      "remaining_hours": 7,
+      "available_hours": 5,
+      "shortfall_hours": 2,
+      "severity": "warning",
+      "suggestions": [
+        "Start earlier or end later in your study hours, or move a commitment.",
+        "Ask for an extension, or cut the estimate by 2 hours."
+      ]
+    }
   ]
 }
 ```
 
-### 4.2 Endpoints
+An alert is not stored: the planner computes it on each call. `available_hours` is what the planner could fit before the deadline. `severity` is `critical` when more than half of the remaining hours do not fit, otherwise `warning`. `blocks` lists the saved, not completed blocks from today on.
 
-| Method | Path | Owner | Purpose |
-| --- | --- | --- | --- |
-| POST | `/api/auth/register/` | Justin | Create a user and their settings. Returns `{ token, user }`. |
-| POST | `/api/auth/login/` | Justin | Returns `{ token }` |
-| GET | `/api/auth/me/` | Justin | Current user |
-| GET, POST | `/api/tasks/` | Justin | List and create tasks |
-| GET, PATCH, DELETE | `/api/tasks/{id}/` | Justin | One task |
-| POST | `/api/tasks/{id}/progress/` | Justin | Body `{ "hours": 1.5 }`. Adds to `completed_hours`. |
-| GET, POST | `/api/commitments/` | Justin | List and create commitments |
-| GET, PATCH, DELETE | `/api/commitments/{id}/` | Justin | One commitment |
-| GET, PUT | `/api/settings/` | Justin | The user's planner settings |
-| GET, POST | `/api/day-overrides/` | Justin | List and create day overrides |
-| PATCH, DELETE | `/api/day-overrides/{id}/` | Justin | One day override |
-| POST | `/api/planner/generate/` | Cody | Build a new plan. Returns `{ blocks, alerts }`. |
-| GET | `/api/planner/blocks/?start=&end=` | Cody | Study blocks in a date range |
-| PATCH | `/api/planner/blocks/{id}/` | Cody | Body `{ status }` or `{ locked }` |
-| GET | `/api/planner/alerts/` | Cody | Current alerts |
-| GET | `/api/planner/events/?start=&end=` | Cody | All calendar events in a range. See 4.3. |
-| GET | `/api/planner/week/?start=YYYY-MM-DD` | Cody | Weekly dashboard summary. See 4.4. |
+### 4.4 Calendar events (spare)
 
-### 4.3 Calendar event shape
-
-The backend expands recurring commitments into single events. The calendar then reads one list and does no date math.
+`GET /planner/events/?start=YYYY-MM-DD&end=YYYY-MM-DD`. `end` is exclusive, like FullCalendar's range, and the range can be 92 days at most. The default is the current week. Decision `D5`: the frontend builds the same list in `lib/events.ts` and does not call this endpoint. If you change a rule here, change it there too.
 
 ```json
 {
   "id": "block-12",
   "type": "study",
   "title": "Capstone report",
-  "start": "2026-11-18T10:00:00-07:00",
-  "end": "2026-11-18T12:00:00-07:00",
+  "start": "2026-11-18T10:00:00-06:00",
+  "end": "2026-11-18T12:00:00-06:00",
   "task_id": 4,
   "status": "planned",
   "locked": false,
   "kind": null,
-  "color": "#7c3aed"
+  "color": "#9575CD"
 }
 ```
 
-For a commitment, `type` is `"commitment"`, `id` is `"commitment-<id>-<date>"`, `kind` has a value and `task_id`, `status` and `locked` are `null`.
+- Study blocks: `status` is `planned` or `done`, `locked` is always `false`. A project with no colour or white uses `#9575CD`.
+- Commitments: recurring ones are expanded into one event per day. `type` is `"commitment"`, `id` is `"commitment-<id>-<date>"`, `color` is `#9E9E9E`, and `task_id`, `status`, `locked` and `kind` are `null`.
+- Day overrides: also `type` `"commitment"`, with `id` `"override-<id>-<date>"` and `color` `#E57373`. The title is the note, or else the reason.
 
-### 4.4 Weekly summary shape
+### 4.5 Weekly summary (spare)
+
+`GET /planner/week/?start=YYYY-MM-DD&now=<datetime>`. The 7 days from `start` (default: this week's Monday). Like 4.4, the frontend builds this itself (`buildWeeklySummary` in `lib/events.ts`).
 
 ```json
 {
@@ -316,11 +373,16 @@ For a commitment, `type` is `"commitment"`, `id` is `"commitment-<id>-<date>"`, 
     { "date": "2026-11-16", "capacity_hours": 6, "planned_hours": 4, "done_hours": 4 }
   ],
   "tasks": [
-    { "task_id": 4, "title": "Capstone report", "deadline": "2026-11-21T23:59:00-07:00",
+    { "task_id": 4, "title": "Capstone report", "deadline": "2026-11-21T23:59:00-06:00",
       "estimated_hours": 10, "completed_hours": 3, "percent": 30, "at_risk": true }
   ]
 }
 ```
+
+- `capacity_hours`: free time in the study window after commitments and time off, capped by the daily limit.
+- `missed_hours`: blocks that ended before `now` and are not completed.
+- `at_risk`: the project would get an alert if the plan were rebuilt now (a dry run).
+- `tasks` leaves out skipped projects and projects completed before the week.
 
 ---
 
@@ -465,7 +527,8 @@ A known limit: EDF fills the earliest days first, so later days stay empty. If t
 | `prompts/<your name>.md` | Each person writes only to their own file, so logs from different branches do not conflict. Number entries in your file from 1. Do not add new entries to `Prompts.md`: it is the index, and its table of the old shared log is frozen. |
 | `backend/config/settings.py` | Justin owns it. Ask Justin before you change it. |
 | `backend/config/urls.py` | All endpoints live in `backend/api/urls.py`. The root file only includes it under `api/v1/`. |
-| `frontend/src/types/api.ts` | JP owns it after Phase 0. A change here needs the same change in the backend serializer and in section 4. |
+| `frontend/src/types/backend.ts` | The real API shapes. A change here needs the same change in the backend serializer and in section 4. |
+| `frontend/src/types/api.ts` | JP owns it. The planned shapes the calendar components read after `lib/events.ts` converts the data. |
 
 ### Definition of done for a task
 
@@ -494,7 +557,7 @@ Demo user: a student with a part-time job. T is the demo day.
 | Project | Reading notes: due T+10, 3 hours estimated, 1 done, priority 3. It fits. |
 | Study blocks | Completed: Capstone T-2 14:00–15:00 and T-1 09:00–11:00, Reading T-1 13:00–14:00. The projects are created with 0 hours done, and these blocks add the 3 h and 1 h when they are saved (`StudyBlock.save`, `B3.3`). |
 
-The section 4.1 shapes differ from the real models (2.2): deadlines are dates, hours are decimals with 2 places and priority is 0–10 (higher is more important). `api/test_seed_demo.py` checks the alert numbers and steps 5 and 6.
+The real models (section 4.1) differ from the original plan (2.2): deadlines are dates, hours are decimals with 2 places and priority is 0–10 (higher is more important). `api/test_seed_demo.py` checks the alert numbers and steps 5 and 6.
 
 Steps:
 

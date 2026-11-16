@@ -423,3 +423,26 @@ Number entries in this file from 1. Entries moved from the old shared log keep t
 - **Prompt:** "unstage the db backup and commit"
 - **Output / changes:** Unstaged `backend/db.sqlite3.bak` (it stays on disk and is ignored by `*.sqlite3.bak`), then committed the work from entries 23 to 28 on branch `justin-backend-update`. Not pushed.
 - **Human review:** _TBD_
+
+### 29. Rewrite roadmap section 4 to match the real backend
+
+- **Date:** 2026-11-16
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "Update section 4 to reflect the real backend"
+- **Output / changes:** Read `api/models.py`, `serializers.py`, `views.py`, `urls.py`, `scheduler.py` and `config/settings.py`, then rewrote section 4 of `docs/ROADMAP.md` from the planned contract into the real API.
+  - 4.1: the six real models (`Account`, `Project`, `Commitment`, `PlannerSettings`, `DayOverride`, `StudyBlock`) with real field names, types, defaults, validation rules, the automatic project status rules and the block progress rules.
+  - 4.2: the real `/api/v1/` endpoints, filters and sorting, token login and logout.
+  - 4.3 (new): `POST /planner/generate/` with `now`, `dry_run` and `alerts_only`, and the real alert shape.
+  - 4.4 and 4.5: the spare `/planner/events/` and `/planner/week/` shapes with the `-06:00` offset and their real differences.
+  - Updated the references that called section 4 the planned contract: the `B1.1` row, the 2.2 heading and table header, the time zone note, the section 8 note, and the merge-conflict table (`types/backend.ts` added).
+- **Human review:** _TBD_
+
+### 30. Commit the section 4 update
+
+- **Date:** 2026-11-16
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "commit this"
+- **Output / changes:** Committed `docs/ROADMAP.md` and `prompts/Justin.md` (entries 29 and 30) on branch `justin-backend-update`. Not pushed.
+- **Human review:** _TBD_
