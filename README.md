@@ -81,7 +81,8 @@ Team-Crashouts-Hackathon-Project/
 │       ├── pages/               # Login, Register, Dashboard, Calendar, Tasks, Schedule
 │       └── types/               # backend.ts (real API records), api.ts (calendar and summary shapes)
 ├── docs/ROADMAP.md              # Task plan, status and what is left
-├── Prompts.md                   # AI prompt log
+├── Prompts.md                   # AI prompt log index (links to each person's log)
+├── prompts/                     # One AI prompt log per team member
 └── README.md
 ```
 
