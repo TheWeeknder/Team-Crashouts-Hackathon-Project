@@ -302,3 +302,12 @@ Number entries in this file from 1. Entries moved from the old shared log keep t
 - **Prompt:** "create a branch, commit and push"
 - **Output / changes:** Created the branch `justin/roadmap-2.3-2.4-dashboard` from `main`, committed the work from entries 17 and 18, and pushed the branch to `origin`.
 - **Human review:** _TBD_
+
+### 20. Create the pull request
+
+- **Date:** 2026-11-15
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "create the pull request"
+- **Output / changes:** The branch `justin/roadmap-2.3-2.4-dashboard` had been deleted from GitHub. After Justin confirmed, pushed it again and opened PR #1 against `main`. Added this log entry to the branch.
+- **Human review:** _TBD_
