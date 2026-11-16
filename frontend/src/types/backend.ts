@@ -144,6 +144,9 @@ export type StudyBlockInput = Partial<Omit<StudyBlock, ServerFields>> &
 export interface StudyBlockListParams {
   project?: number
   date?: ISODate
+  // Inclusive date range.
+  date_from?: ISODate
+  date_to?: ISODate
   completed?: boolean
   ordering?: string
 }
@@ -177,3 +180,6 @@ export interface GeneratePlanResponse {
   blocks: Array<Omit<StudyBlock, 'id'> & { id: number | null }>
   alerts: PlanAlert[]
 }
+
+// POST planner/generate/ with alerts_only: a dry run without the blocks.
+export type PlanCheckResponse = Omit<GeneratePlanResponse, 'blocks'>

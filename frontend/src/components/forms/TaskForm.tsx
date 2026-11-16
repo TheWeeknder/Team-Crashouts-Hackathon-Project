@@ -57,6 +57,15 @@ export default function TaskForm({ project, onDone }: TaskFormProps) {
     const done = Number(completed);
     if (project && (completed === "" || !Number.isFinite(done) || done < 0)) {
       errors.completed_hours = "Enter the hours done so far (0 or more).";
+    } else if (
+      project &&
+      !errors.estimated_hours &&
+      done > est &&
+      // Done sessions can take a task past its estimate. Only block a change
+      // to the hours, as the server does, so other edits still save.
+      (done !== (project.completed_hours ?? 0) || est !== (project.estimated_hours ?? 0))
+    ) {
+      errors.completed_hours = `Can't be more than the estimate (${est} h). Raise the estimate first.`;
     }
     return errors;
   }

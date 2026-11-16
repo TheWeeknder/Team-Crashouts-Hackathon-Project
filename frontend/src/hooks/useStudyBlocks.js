@@ -11,9 +11,12 @@ const RESOURCE = 'study-blocks';
 //   createStudyBlock.mutate({ project: 3, date: '2026-11-18', start_time: '09:00', end_time: '11:00' });
 //   updateStudyBlock.mutate({ id, ...changedFields });   // PATCH
 //   deleteStudyBlock.mutate(id);
+//
+// Marking a block done (or undone) also changes its project's
+// completed_hours and status on the server, so project lists refetch too.
 export default function useStudyBlocks(params) {
     const studyBlocks = useResourceList(RESOURCE, params);
-    const { create, update, remove } = useResourceMutations(RESOURCE);
+    const { create, update, remove } = useResourceMutations(RESOURCE, { alsoInvalidate: ['projects'] });
     return {
         studyBlocks,
         createStudyBlock: create,

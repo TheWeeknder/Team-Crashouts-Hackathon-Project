@@ -3,6 +3,8 @@ from datetime import date, datetime, time, timedelta
 from django.db import transaction
 from django.db.models import F, Q
 from django.utils import timezone
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -31,10 +33,13 @@ class UserOwnedViewSet(ModelViewSet):
     - Fills in `user` from the login, so clients never send it.
     - Supports exact-match query filters named in `filter_params`,
       e.g. `?date=2026-11-20`.
+    - Supports date range filters named in `date_range_params`, e.g.
+      `?date_from=2026-09-01&date_to=2026-12-31` (both inclusive).
     """
 
     filter_backends = [OrderingFilter]
     filter_params = []
+    date_range_params = {}
 
     def get_queryset(self):
         queryset = super().get_queryset().filter(user=self.request.user)
@@ -42,6 +47,10 @@ class UserOwnedViewSet(ModelViewSet):
             value = self.request.query_params.get(param)
             if value is not None:
                 queryset = queryset.filter(**{param: value})
+        for param, lookup in self.date_range_params.items():
+            value = self.request.query_params.get(param)
+            if value:
+                queryset = queryset.filter(**{lookup: _parse_day(value, param, None)})
         return queryset
 
     def get_serializer(self, *args, **kwargs):
@@ -106,6 +115,33 @@ class AccountViewSet(ModelViewSet):
         return Response(self.get_serializer(request.user).data)
 
 
+class LoginView(APIView):
+    """POST /api/v1/auth/login/ {"username", "password"} -> {"token", "user"}.
+
+    Checks the password once and returns a token. The client then sends
+    "Authorization: Token <token>" on every request. Logging in again
+    returns the same token until the user logs out.
+    """
+
+    permission_classes = [AllowAny]
+    authentication_classes = []  # a stale header must not block a login
+
+    def post(self, request):
+        serializer = AuthTokenSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({"token": token.key, "user": AccountSerializer(user).data})
+
+
+class LogoutView(APIView):
+    """POST /api/v1/auth/logout/ deletes the caller's token, so it stops working."""
+
+    def post(self, request):
+        Token.objects.filter(user=request.user).delete()
+        return Response(status=204)
+
+
 # --- Projects ---------------------------------------------------------------
 
 class ProjectViewSet(UserOwnedViewSet):
@@ -142,6 +178,8 @@ class StudyBlockViewSet(UserOwnedViewSet):
     queryset = StudyBlock.objects.all().order_by("date", "start_time")
     serializer_class = StudyBlockSerializer
     filter_params = ["project", "date", "completed"]
+    # The frontend loads only the blocks its calendars can show.
+    date_range_params = {"date_from": "date__gte", "date_to": "date__lte"}
     ordering_fields = ["date", "start_time"]
 
     def perform_create(self, serializer):
@@ -191,6 +229,9 @@ class GeneratePlanView(APIView):
                StudyBlock date and time fields use. A time without an offset
                is taken as server-local wall-clock time. Default: server now.
       dry_run  If true, return the plan without saving it.
+      alerts_only  If true, a dry run that returns only {"now", "alerts"}.
+               Used by the frontend's live alert check, which does not need
+               the blocks.
 
     Completed blocks and blocks that already started stay. Every other block
     is replaced. Returns {"now", "blocks", "alerts"}.
@@ -198,7 +239,8 @@ class GeneratePlanView(APIView):
 
     def post(self, request):
         now = _parse_now(request.data.get("now"))
-        dry_run = request.data.get("dry_run") in (True, "true", "1", 1)
+        alerts_only = _truthy(request.data.get("alerts_only"))
+        dry_run = alerts_only or _truthy(request.data.get("dry_run"))
         user = request.user
 
         plan, replaceable = _build_plan_for(user, now)
@@ -218,7 +260,9 @@ class GeneratePlanView(APIView):
             )
             for b in plan.blocks
         ]
-        if dry_run:
+        if alerts_only:
+            blocks = None
+        elif dry_run:
             blocks = [
                 {
                     "id": None,
@@ -259,7 +303,10 @@ class GeneratePlanView(APIView):
             }
             for a in plan.alerts
         ]
-        return Response({"now": now.isoformat(timespec="minutes"), "blocks": blocks, "alerts": alerts})
+        now_text = now.isoformat(timespec="minutes")
+        if alerts_only:
+            return Response({"now": now_text, "alerts": alerts})
+        return Response({"now": now_text, "blocks": blocks, "alerts": alerts})
 
 
 # --- Calendar events and weekly summary (ROADMAP 2.3, D1 and D2) ---------------
@@ -472,6 +519,10 @@ class WeeklySummaryView(APIView):
 
 
 # --- Shared planner helpers -----------------------------------------------------
+
+
+def _truthy(value):
+    return value in (True, "true", "1", 1)
 
 
 def _parse_now(value):

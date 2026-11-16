@@ -49,7 +49,7 @@ Number entries in this file from 1. Entries moved from the old shared log keep t
   - Turned `Prompts.md` into a structured log with an entry template.
   - Backfilled entries 1 and 2.
   - Added a rule to `CLAUDE.md` so Claude logs every future prompt here.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 3. Collapse backend apps into one app
 
@@ -65,7 +65,7 @@ Number entries in this file from 1. Entries moved from the old shared log keep t
   - Removed the four old migrations and generated a single `api/migrations/0001_initial.py`.
   - Updated `INSTALLED_APPS` to `'api'` and `config/urls.py` to include `api.urls` under `api/v1/`.
   - Updated the project structure in `README.md` and the old app paths in `docs/ROADMAP.md`.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 4. Review the project and update the roadmap and README
 
@@ -292,7 +292,7 @@ Number entries in this file from 1. Entries moved from the old shared log keep t
     - logging out resets the view to the Dashboard and closes the settings modal, so the next login always lands on the Dashboard
   - `docs/ROADMAP.md`: updated the `F0.1` row.
   - `npm run build` and `eslint` pass.
-- **Human review:** _TBD_
+- **Human review:** Justin
 
 ### 19. Commit and push the 2.3/2.4 fixes and the dashboard change
 
@@ -301,4 +301,148 @@ Number entries in this file from 1. Entries moved from the old shared log keep t
 - **Used by:** Justin
 - **Prompt:** "create a branch, commit and push"
 - **Output / changes:** Created the branch `justin/roadmap-2.3-2.4-dashboard` from `main`, committed the work from entries 17 and 18, and pushed the branch to `origin`.
+- **Human review:** Justin
+
+### 20. Create the pull request
+
+- **Date:** 2026-11-15
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "create the pull request"
+- **Output / changes:** The branch `justin/roadmap-2.3-2.4-dashboard` had been deleted from GitHub. After Justin confirmed, pushed it again and opened PR #1 against `main`. Added this log entry to the branch.
+- **Human review:** Justin
+
+### 21. Compare the real API with the planned contract
+
+- **Date:** 2026-11-15
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "In terms of the contract is the current set up more efficient than the plan"
+- **Output / changes:** An answer only, no files changed. The current setup is faster for calendar navigation, but less efficient than the plan in four ways: Basic auth re-hashes the password on every request, lists are unbounded, the alert check returns every block, and events and summary logic exist twice. Recommended token auth, a date range for study blocks, and an alerts-only check.
+- **Human review:** _TBD_
+
+### 22. List frontend logic that should move to the backend
+
+- **Date:** 2026-11-16
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "What in the frontend should/can be moved to the backend"
+- **Output / changes:** An answer only, no files changed. Should move: project progress when a block is marked done (`B3.3`), automatic project status, the "plan out of date" state (now in `localStorage`), and one settings row per user. Copy to the server: the form validation (`B1.2`). Can move: settings defaults, overdue flags, the time-off preview. Keep in the frontend: `lib/events.ts` (`D5`) and display code.
+- **Human review:** _TBD_
+
+### 23. Implement the efficiency changes
+
+- **Date:** 2026-11-16
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "implement efficiencies"
+- **Output / changes:** Implemented the three efficiency fixes from entry 21, on branch `justin-backend-update`. Another Claude session was working on `B3.3` in the same tree at the same time, so the two sessions agreed which files each would change.
+  - Token auth:
+    - `config/settings.py`: added `rest_framework.authtoken`; `TokenAuthentication` comes first and Basic auth stays as a fallback.
+    - `api/views.py` and `api/urls.py`: `POST /auth/login/` returns `{token, user}`, and `POST /auth/logout/` deletes the token.
+    - Frontend: `api/api.js` logs in through `auth/login/` and stores `Token <token>`. The new `signOut` revokes the token. `useLogin`, `useLogout` and `api.d.ts` are updated, and `basicAuthHeader` is removed.
+  - Study block date range:
+    - `UserOwnedViewSet.date_range_params`, with `?date_from=` and `?date_to=` on `/study-blocks/` (400 on a bad date).
+    - `usePlannerData` loads blocks from `DAYS_BACK` (120) days ago, shared with `CalendarPage`. `StudyBlockListParams` has the new fields.
+  - Alerts-only check:
+    - `alerts_only` on `POST /planner/generate/`, which returns `{now, alerts}`.
+    - `usePlanCheck` and `DayOverrideForm` use it, with the new `PlanCheckResponse` type.
+  - `api/tests.py`: 7 new tests (`TokenAuthTests`, `StudyBlockRangeTests`, `AlertsOnlyTests`). All 58 backend tests pass, there are no pending migrations, and `npm run build` and `eslint` pass.
+  - `docs/ROADMAP.md` (`B1.3`, 2.2, `D4`, 2.4) and `README.md` (API overview) are updated.
+- **Human review:** _TBD_
+
+### 24. Move block progress and project status to the backend (B3.3)
+
+- **Date:** 2026-11-16
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** Pasted the full list from entry 22 ("Should move (data correctness)" … "Keep in the frontend"), ending with: "Suggested order: items 1 and 2 together first, since they're small and fix a real consistency bug. Then server validation, then item 4, then item 3, which needs a migration and a new endpoint. Want me to start with items 1 and 2, and add this list to roadmap section 2.5?"
+- **Output / changes:**
+  - `backend/api/models.py`:
+    - `Project.save()` sets `status` from the hours: completed at the estimate, back to in_progress below it, in_progress once hours are done, `skipped` left alone
+    - `StudyBlock.save()` applies the block's hours to its project in one transaction with the project row locked, when `completed`, the times or the project change
+    - deleting a done block keeps its hours
+  - `backend/api/management/commands/seed_demo.py`: projects start at 0 h, and the done sessions add the 3 h and 1 h.
+  - `backend/api/test_scheduler.py`: the weekly summary fixture starts Capstone at 2 h, so its done block makes 3.
+  - `backend/api/tests.py`: added `ProjectStatusTests` and `StudyBlockProgressTests` (12 tests). All 58 backend tests pass.
+  - Frontend:
+    - deleted `lib/progress.ts`
+    - `EventDetails` now sends only the block PATCH
+    - `LogHoursForm` sends only `completed_hours`
+    - `useStudyBlocks` refetches projects after a block change
+    - `tsc` and `eslint` pass
+  - `docs/ROADMAP.md`: `B3.3` and `B4.1` rows, and the backend-move list added as item 9 of section 2.5.
+- **Human review:** _TBD_
+
+### 25. Check the other sessions' changes and update the roadmap and README
+
+- **Date:** 2026-11-16
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "After other agents have completed check changes and update roadmap and readme"
+- **Output / changes:** Waited for the two other Claude sessions (entries 23 and 24) to finish, then reviewed the working-tree diff. All 58 backend tests pass, there are no pending migrations, and `npm run build` and `eslint` pass.
+  - `docs/ROADMAP.md`: section 2 date and check line (58 tests, branch `justin-backend-update`), summary, `B0.1` (token auth), `B2.4` (58 tests and what they cover), `F1.1` (token login, `DAYS_BACK`, `alerts_only`), the AI log gap count, 2.5 item 4 (token auth done, points to 9.3), and section 8 (seed hours now come from the done blocks; hours are decimals).
+  - `README.md`: project structure (`tests.py`, login views, `lib/progress.ts` removed), `migrate` note, test count 30 → 58, the Done list (server-side progress, lighter requests) and the Still to do list.
+  - Flagged: `backend/db.sqlite3.bak` is staged again (`git add`), although roadmap 2.4 says it was untracked on purpose.
+- **Human review:** _TBD_
+
+### 26. Server-side validation (B1.2)
+
+- **Date:** 2026-11-16
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "start the server-side validation (B1.2)"
+- **Output / changes:**
+  - `backend/api/serializers.py`: `validate()` on four serializers, with the form rules. A PATCH is checked against the stored values, and error keys match the form fields.
+    - Commitments: start and end times required, end after start, weekdays (valid "0,2,4" text) if it repeats, a date if not, `active_to` on or after `active_from`.
+    - Day overrides: a date, and either no times (whole day) or both, with end after start.
+    - Planner settings: day end after day start, max hours 1 to 24, sessions at least 15 minutes, min ≤ max, break ≥ 0, valid work days. Empty or 0 still means "use the default", compared with the scheduler defaults.
+    - Projects: completed ≤ estimated, checked only when the request changes the hours, so a task that done sessions took past its estimate can still be edited.
+  - `backend/api/tests.py`: added `ServerValidationTests` (8 tests). All 66 backend tests pass.
+  - `frontend/src/components/forms/TaskForm.tsx`: the same completed ≤ estimated check. `tsc` and `eslint` pass.
+  - `docs/ROADMAP.md`: the summary line, the `B1.2` and `B2.4` rows, and items 4 and 9.3 in section 2.5.
+- **Human review:** _TBD_
+
+### 27. Check the latest changes again and update the roadmap and README
+
+- **Date:** 2026-11-16
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "Check again and update"
+- **Output / changes:** Reviewed the new changes since entry 25: server-side validation in `api/serializers.py` and the completed ≤ estimated check in `TaskForm.tsx` (entry 26). All 66 backend tests pass, there are no pending migrations, and `npm run build` and `eslint` pass.
+  - `docs/ROADMAP.md`: the section 2 update line (validation added, 66 tests) and the AI log gap count (Justin: 7, entries 21 to 27). The `B1.2`, `B2.4` and 2.5 rows were already updated in entry 26.
+  - `README.md`: test count 58 → 66, server-side validation moved from Still to do to Done.
+  - Still flagged: `backend/db.sqlite3.bak` is staged in git.
+- **Human review:** _TBD_
+
+### 28. Unstage the database backup and commit
+
+- **Date:** 2026-11-16
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "unstage the db backup and commit"
+- **Output / changes:** Unstaged `backend/db.sqlite3.bak` (it stays on disk and is ignored by `*.sqlite3.bak`), then committed the work from entries 23 to 28 on branch `justin-backend-update`. Not pushed.
+- **Human review:** _TBD_
+
+### 29. Rewrite roadmap section 4 to match the real backend
+
+- **Date:** 2026-11-16
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "Update section 4 to reflect the real backend"
+- **Output / changes:** Read `api/models.py`, `serializers.py`, `views.py`, `urls.py`, `scheduler.py` and `config/settings.py`, then rewrote section 4 of `docs/ROADMAP.md` from the planned contract into the real API.
+  - 4.1: the six real models (`Account`, `Project`, `Commitment`, `PlannerSettings`, `DayOverride`, `StudyBlock`) with real field names, types, defaults, validation rules, the automatic project status rules and the block progress rules.
+  - 4.2: the real `/api/v1/` endpoints, filters and sorting, token login and logout.
+  - 4.3 (new): `POST /planner/generate/` with `now`, `dry_run` and `alerts_only`, and the real alert shape.
+  - 4.4 and 4.5: the spare `/planner/events/` and `/planner/week/` shapes with the `-06:00` offset and their real differences.
+  - Updated the references that called section 4 the planned contract: the `B1.1` row, the 2.2 heading and table header, the time zone note, the section 8 note, and the merge-conflict table (`types/backend.ts` added).
+- **Human review:** _TBD_
+
+### 30. Commit the section 4 update
+
+- **Date:** 2026-11-16
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "commit this"
+- **Output / changes:** Committed `docs/ROADMAP.md` and `prompts/Justin.md` (entries 29 and 30) on branch `justin-backend-update`. Not pushed.
 - **Human review:** _TBD_

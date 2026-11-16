@@ -19,7 +19,7 @@ import {
 } from "../../lib/dates";
 import { splitServerErrors } from "../../lib/formErrors";
 import { REASON_OPTIONS } from "../../lib/taskOptions";
-import type { DayOverride, GeneratePlanResponse, PlanAlert } from "../../types/backend";
+import type { DayOverride, PlanAlert, PlanCheckResponse } from "../../types/backend";
 import { Field, FormActions, FormError } from "./Field";
 
 const FIELDS = ["date", "start_time", "end_time", "reason", "note"] as const;
@@ -58,7 +58,7 @@ export default function DayOverrideForm({ override, defaultDate, onDone }: DayOv
   // Step 2 state.
   const [phase, setPhase] = useState<"form" | "checking" | "impact">("form");
   const [before, setBefore] = useState<PlanAlert[]>([]);
-  const [after, setAfter] = useState<GeneratePlanResponse | null>(null);
+  const [after, setAfter] = useState<PlanCheckResponse | null>(null);
   const [checkError, setCheckError] = useState<string | null>(null);
 
   const server = splitServerErrors(mutation.error ?? generatePlan.error, FIELDS);

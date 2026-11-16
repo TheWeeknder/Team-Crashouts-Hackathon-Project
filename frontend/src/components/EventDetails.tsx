@@ -1,10 +1,8 @@
 import { useState } from "react";
 
-import useProjects from "../hooks/useProjects";
 import usePlanStatus from "../hooks/usePlanStatus";
 import useStudyBlocks from "../hooks/useStudyBlocks";
 import { blockHours } from "../lib/events";
-import { nextProgress } from "../lib/progress";
 import { priorityLabel, statusLabel } from "../lib/taskOptions";
 import type { CalendarEvent } from "../types/api";
 import type { Project, StudyBlock } from "../types/backend";
@@ -45,14 +43,13 @@ interface EventDetailsProps {
 }
 
 // Details for one calendar event, plus "mark done" for study sessions.
-// A block's length in hours, rounded to the backend's 2 decimals.
+// A block's length in hours, rounded like the server does (display only).
 function sessionHours(block: StudyBlock): number {
   return Math.round(blockHours(block) * 100) / 100;
 }
 
 export default function EventDetails({ event, projects, blocks }: EventDetailsProps) {
   const { updateStudyBlock } = useStudyBlocks();
-  const { updateProject } = useProjects();
   const { markStale } = usePlanStatus();
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -67,15 +64,9 @@ export default function EventDetails({ event, projects, blocks }: EventDetailsPr
     setError(null);
     const nowDone = !block.completed;
     try {
+      // The server adds or removes the block's hours on its project, and
+      // updates the project's status, in the same request (ROADMAP B3.3).
       await updateStudyBlock.mutateAsync({ id: block.id, completed: nowDone });
-      if (project) {
-        // Round to 2 decimals first so "done" then "undo" always cancel out.
-        const hours = sessionHours(block);
-        await updateProject.mutateAsync({
-          id: project.id,
-          ...nextProgress(project, nowDone ? hours : -hours),
-        });
-      }
       markStale();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not update this session.");

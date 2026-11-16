@@ -3,7 +3,6 @@ import { useId, useState, type FormEvent } from "react";
 import useProjects from "../../hooks/useProjects";
 import usePlanStatus from "../../hooks/usePlanStatus";
 import { splitServerErrors } from "../../lib/formErrors";
-import { nextProgress } from "../../lib/progress";
 import type { Project } from "../../types/backend";
 import { Field, FormActions, FormError } from "./Field";
 
@@ -25,8 +24,11 @@ export default function LogHoursForm({ project, onDone }: { project: Project; on
       return;
     }
     setError(null);
+    // Rounded to the backend's 2 decimals. The server sets the status from
+    // the hours (ROADMAP B3.3).
+    const completed = Math.round(((project.completed_hours ?? 0) + value) * 100) / 100;
     updateProject.mutate(
-      { id: project.id, ...nextProgress(project, value) },
+      { id: project.id, completed_hours: completed },
       {
         onSuccess: () => {
           markStale();

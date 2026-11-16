@@ -60,22 +60,23 @@ Team-Crashouts-Hackathon-Project/
 ├── backend/                     # Django API
 │   ├── config/                  # Settings (TIME_ZONE America/Edmonton), root URLs (api/ at /api/v1/)
 │   ├── api/                     # The one Django app
-│   │   ├── models.py            # Account, Project, Commitment, PlannerSettings, DayOverride, StudyBlock
-│   │   ├── serializers.py
-│   │   ├── views.py             # CRUD viewsets, planner generate, events and week views
+│   │   ├── models.py            # Account, Project, Commitment, PlannerSettings, DayOverride, StudyBlock (done blocks update project hours and status)
+│   │   ├── serializers.py       # Includes server-side validation (same rules as the forms)
+│   │   ├── views.py             # CRUD viewsets, login and logout, planner generate, events and week views
 │   │   ├── urls.py
 │   │   ├── scheduler.py         # EDF planning algorithm (plain Python, no Django)
 │   │   ├── test_scheduler.py    # Planner and planner endpoint tests
 │   │   ├── test_seed_demo.py    # Demo data and demo script tests
+│   │   ├── tests.py             # Accounts, token login, decimal hours, block progress and project status
 │   │   ├── management/commands/seed_demo.py  # Demo account (ROADMAP section 8)
 │   │   └── migrations/
 │   └── requirements.txt
 ├── frontend/                    # React + TypeScript client
 │   └── src/
 │       ├── App.tsx              # Navbar, view switching, login gate, settings modal
-│       ├── api/api.js           # fetch wrapper with Basic auth
+│       ├── api/api.js           # fetch wrapper with token auth
 │       ├── hooks/               # TanStack Query hooks per resource, usePlannerData, usePlanStatus, useGeneratePlan
-│       ├── lib/                 # events.ts (backend records -> calendar events and weekly summary), dates, progress
+│       ├── lib/                 # events.ts (backend records -> calendar events and weekly summary), dates, form errors, labels
 │       ├── components/          # Calendars, PlanForDay, ProgressTracker, EventDetails, Modal, ConfirmDialog
 │       │   └── forms/           # Task, Commitment, DayOverride, Settings and LogHours forms
 │       ├── pages/               # Login, Register, Dashboard, Calendar, Tasks, Schedule
@@ -97,11 +98,11 @@ cd backend
 python -m venv venv
 # Windows: venv\Scripts\activate   |   macOS/Linux: source venv/bin/activate
 pip install -r requirements.txt
-python manage.py migrate
+python manage.py migrate           # run again after each pull (creates the login token table)
 python manage.py createsuperuser   # optional, for /admin/
 python manage.py runserver         # http://127.0.0.1:8000
 python manage.py seed_demo         # demo account: demo / demo1234 (resets on each run)
-python manage.py test api          # 30 tests
+python manage.py test api          # 66 tests
 ```
 
 `seed_demo` creates a student with shifts, classes and three projects, with dates relative to today. After you click **Generate plan**, one project shows the "7 hours left, only 5 free" alert. Run it again right before a demo to reset the account. Options: `--password`, `--username`, `--today YYYY-MM-DD`. You can also create your own user through the sign-up page.
@@ -131,20 +132,22 @@ The frontend calls `http://127.0.0.1:8000/api/v1/` by default. To change it, set
 
 ### API overview
 
-All routes start with `/api/v1/` and use HTTP Basic auth. Each user sees only their own records.
+All routes start with `/api/v1/` and use token auth (`Authorization: Token <token>` from `auth/login/`). Basic auth also works, for curl and the browsable API. Each user sees only their own records.
 
 | Route | Purpose |
 | --- | --- |
 | `POST accounts/` | Sign up (no login needed) |
-| `GET accounts/me/` | Current user, also used to check a login |
+| `POST auth/login/` | Log in with `{ "username", "password" }`. Returns `{ token, user }` |
+| `POST auth/logout/` | Revoke the current token |
+| `GET accounts/me/` | Current user |
 | `projects/` | Tasks with a deadline and hour estimates (`?status=`) |
 | `commitments/` | Shifts, practices and one-off events, recurring or not |
 | `planner-settings/` | Work window, work days, daily limit, block sizes |
 | `day-overrides/` | Time blocked on one date (sick day, emergency) |
-| `study-blocks/` | Scheduled study sessions (`?date=`, `?project=`, `?completed=`) |
+| `study-blocks/` | Scheduled study sessions (`?date=`, `?date_from=`, `?date_to=`, `?project=`, `?completed=`) |
 | `GET planner/events/?start=&end=` | Calendar events in a date range: study blocks, commitments (recurring ones expanded) and day overrides. `end` is exclusive. The frontend does not use it: it builds events in `lib/events.ts`. |
 | `GET planner/week/?start=` | Weekly summary: hours planned, done and missed, daily capacity, and project progress with at-risk flags. The frontend does not use it: it builds the same summary in `lib/events.ts`. |
-| `POST planner/generate/` | Build a new plan. Body: `{ "now": "2026-11-18T14:30-06:00", "dry_run": false }`. A `now` with an offset is converted to America/Edmonton. Returns `{ now, blocks, alerts }`. |
+| `POST planner/generate/` | Build a new plan. Body: `{ "now": "2026-11-18T14:30-06:00", "dry_run": false }`. A `now` with an offset is converted to America/Edmonton. Returns `{ now, blocks, alerts }`. With `"alerts_only": true`, a dry run that returns only `{ now, alerts }`. |
 
 ---
 
@@ -155,24 +158,27 @@ See [docs/ROADMAP.md](docs/ROADMAP.md), section 2, for the status of each task, 
 **Done**
 
 - [x] Data models and REST API for all of them, scoped to the logged-in user
-- [x] Sign up and login (Basic auth)
+- [x] Sign up and login (token auth)
 - [x] Scheduling algorithm: earliest deadline first, with breaks, block sizes and a daily limit
 - [x] Feasibility alerts with suggestions
-- [x] Backend tests for the planner, its endpoints, the demo data, account responses and decimal hours (39 passing)
+- [x] Backend tests for the planner, its endpoints, the demo data, account responses, decimal hours, token login, block progress and validation (66 passing)
 - [x] `seed_demo` command with the demo data
 - [x] `npm run build` passes
 - [x] App shell with Tailwind + daisyUI, light and dark mode, and mobile layout
 - [x] Tasks, Schedule (commitments and time off) and Settings forms
 - [x] Dashboard: weekly calendar, day plan, progress tracker, alerts panel, "Generate plan" and quick actions
 - [x] Monthly calendar on real data, with event details
-- [x] Mark study blocks done and log hours, which updates project progress (hours keep fractions, e.g. 0.75 h)
+- [x] Mark study blocks done and log hours, which updates project progress (hours keep fractions, e.g. 0.75 h). The server keeps a project's hours and status in step with its done sessions, in the same request.
+- [x] Lighter requests: token auth instead of Basic auth, study blocks loaded by date range, and an alerts-only plan check
 - [x] One version of the calendar events and summary logic: the frontend's `lib/events.ts` (roadmap `D5`)
 - [x] Account responses no longer include the password hash
+- [x] Server-side validation: the API applies the same rules as the forms (times in order, weekdays, settings ranges, hours done ≤ estimate)
 
 **Still to do** (in priority order; details in roadmap section 2.5)
 
 - [ ] Rehearse the demo script on a fresh database
-- [ ] Server-side validation; more CRUD and permission tests
+- [ ] More CRUD and permission tests
+- [ ] Move the remaining data rules to the backend: one settings row per user, "plan out of date" stored on the server
 - [ ] At-risk badges on the Tasks page
 - [ ] Polish, `docs/ALGORITHM.md`, slides
 - [ ] Stretch: routing, automatic replanning, "Missed" and "Lock" for blocks
