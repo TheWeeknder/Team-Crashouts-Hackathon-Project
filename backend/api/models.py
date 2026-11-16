@@ -1,4 +1,7 @@
-from django.db import models
+from datetime import datetime
+from decimal import ROUND_HALF_UP, Decimal
+
+from django.db import models, transaction
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -69,6 +72,34 @@ class Project(models.Model):
         completed = self.completed_hours or 0
         return float(max(estimated - completed, 0))
 
+    def sync_status(self):
+        """Make `status` agree with the hours (ROADMAP B3.3).
+
+        - Skipped stays skipped.
+        - Hours reach the estimate: completed.
+        - Below the estimate but marked completed: back to in_progress.
+        - Some hours done but marked incompleted: in_progress.
+        A project with no estimate can still be marked completed by hand.
+        """
+        if self.status == self.STATUS_SKIPPED:
+            return
+        estimated = Decimal(self.estimated_hours or 0)
+        completed = Decimal(self.completed_hours or 0)
+        if estimated > 0 and completed >= estimated:
+            self.status = self.STATUS_COMPLETED
+        elif estimated > 0 and self.status == self.STATUS_COMPLETED:
+            self.status = self.STATUS_IN_PROGRESS
+        elif completed > 0 and self.status == self.STATUS_INCOMPLETED:
+            self.status = self.STATUS_IN_PROGRESS
+
+    def save(self, *args, **kwargs):
+        # Runs for the API, Django admin and scripts alike.
+        self.sync_status()
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None and "status" not in update_fields:
+            kwargs["update_fields"] = [*update_fields, "status"]
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.title
 
@@ -128,6 +159,51 @@ class StudyBlock(models.Model):
     start_time = models.TimeField(default=None, blank=True, null=True)
     end_time = models.TimeField(default=None, blank=True, null=True)
     completed = models.BooleanField(default=False, blank=True, null=True)
+
+    @property
+    def hours(self):
+        """Block length in hours, rounded to the 2 decimals projects store."""
+        # to_python accepts strings too, e.g. StudyBlock(date="2026-11-18") in a script.
+        day = self._meta.get_field("date").to_python(self.date)
+        start = self._meta.get_field("start_time").to_python(self.start_time)
+        end = self._meta.get_field("end_time").to_python(self.end_time)
+        if not (day and start and end):
+            return Decimal("0")
+        minutes = (datetime.combine(day, end) - datetime.combine(day, start)).total_seconds() / 60
+        if minutes <= 0:
+            return Decimal("0")
+        return (Decimal(int(minutes)) / 60).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    def save(self, *args, **kwargs):
+        """Save the block and keep its project's completed_hours in step (ROADMAP B3.3).
+
+        A completed block counts its hours toward its project. When a save
+        changes that (marked done or undone, moved to another project, or a
+        done block's times change), the difference is applied to the
+        project(s) in the same transaction. The project rows are locked, so
+        two tabs marking blocks at once cannot lose an update. Deleting a
+        block leaves the hours, because the study time still happened.
+        """
+        with transaction.atomic():
+            old = None
+            if self.pk is not None:
+                old = StudyBlock.objects.select_for_update().filter(pk=self.pk).first()
+            super().save(*args, **kwargs)
+
+            changes = {}
+            if old is not None and old.completed:
+                changes[old.project_id] = changes.get(old.project_id, Decimal("0")) - old.hours
+            if self.completed:
+                changes[self.project_id] = changes.get(self.project_id, Decimal("0")) + self.hours
+            for project_id, delta in changes.items():
+                if delta == 0:
+                    continue
+                project = Project.objects.select_for_update().get(pk=project_id)
+                project.completed_hours = max(Decimal("0"), Decimal(project.completed_hours or 0) + delta)
+                project.save(update_fields=["completed_hours"])
+                if self.project_id == project_id:
+                    # Callers (and the API response path) see the new hours.
+                    self.project = project
 
     def __str__(self):
         return f"Study Block for {self.project.title} on {self.date}"

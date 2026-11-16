@@ -308,7 +308,8 @@ class WeeklySummaryViewTests(APITestCase):
 
     def test_readme_example_is_at_risk_and_hours_add_up(self):
         # README example: 10 h estimated, 3 done, only 5 h free before Friday.
-        capstone = Project.objects.create(user=self.user, title="Capstone", deadline=FRI, estimated_hours=10, completed_hours=3)
+        # 2 h logged earlier; the done block below adds the third (StudyBlock.save).
+        capstone = Project.objects.create(user=self.user, title="Capstone", deadline=FRI, estimated_hours=10, completed_hours=2)
         reading = Project.objects.create(user=self.user, title="Reading", deadline=FRI + scheduler.timedelta(days=10), estimated_hours=3)
         PlannerSettings.objects.create(user=self.user, max_hours_per_day=1)
         StudyBlock.objects.create(user=self.user, project=capstone, date=MON, start_time=time(9), end_time=time(10), completed=True)

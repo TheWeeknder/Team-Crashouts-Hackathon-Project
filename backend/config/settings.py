@@ -38,12 +38,17 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework.authtoken",
     "api",
     "corsheaders",
 ]
 
 REST_FRAMEWORK = {
+    # Token auth for the app: one cheap database lookup per request. Basic
+    # auth re-hashes the password on every request (Django's hasher is slow
+    # on purpose), so it is kept only for curl and the browsable API.
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.BasicAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [

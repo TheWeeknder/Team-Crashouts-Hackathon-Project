@@ -2,14 +2,15 @@ import { useQuery } from "@tanstack/react-query";
 
 import { apiFetch } from "../api/api";
 import { localNow } from "./useGeneratePlan";
-import type { ApiError, GeneratePlanResponse } from "../types/backend";
+import type { ApiError, PlanCheckResponse } from "../types/backend";
 
 export const PLAN_CHECK_KEY = ["planner", "check"];
 
-export function fetchPlanCheck(): Promise<GeneratePlanResponse> {
-  return apiFetch<GeneratePlanResponse>("planner/generate/", {
+// alerts_only: a dry run that skips the proposed blocks in the response.
+export function fetchPlanCheck(): Promise<PlanCheckResponse> {
+  return apiFetch<PlanCheckResponse>("planner/generate/", {
     method: "POST",
-    body: { now: localNow(), dry_run: true },
+    body: { now: localNow(), alerts_only: true },
   });
 }
 
@@ -21,7 +22,7 @@ export function fetchPlanCheck(): Promise<GeneratePlanResponse> {
 // ['planner'], so resource.js and useGeneratePlan refetch it after every
 // save and every generate.
 export default function usePlanCheck({ enabled = true }: { enabled?: boolean } = {}) {
-  return useQuery<GeneratePlanResponse, ApiError>({
+  return useQuery<PlanCheckResponse, ApiError>({
     queryKey: PLAN_CHECK_KEY,
     queryFn: fetchPlanCheck,
     enabled,

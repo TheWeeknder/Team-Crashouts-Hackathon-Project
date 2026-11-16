@@ -2,12 +2,12 @@ import { useMemo, useState } from "react";
 
 import EventDetails from "../components/EventDetails";
 import MonthlyCalendar from "../components/MonthlyCalendar";
-import usePlannerData from "../hooks/usePlannerData";
+import usePlannerData, { DAYS_BACK } from "../hooks/usePlannerData";
 import { addDays, todayISO } from "../lib/dates";
 import { buildCalendarEvents } from "../lib/events";
 
-// How far back and ahead recurring commitments are expanded.
-const DAYS_BACK = 120;
+// How far ahead recurring commitments are expanded. DAYS_BACK also limits
+// which study blocks are downloaded (usePlannerData).
 const DAYS_AHEAD = 240;
 
 export default function CalendarPage() {

@@ -1,10 +1,11 @@
 export const api_url =
     import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000/api/v1/';
 
-// The backend uses DRF BasicAuthentication, so every request carries
-// "Authorization: Basic <base64 username:password>". We keep that header in
-// sessionStorage so it is gone when the tab closes. If the backend moves to
-// token auth, only useLogin and this file need to change.
+// The backend uses DRF TokenAuthentication: POST auth/login/ checks the
+// password once and returns a token, and every later request carries
+// "Authorization: Token <token>". This is much cheaper for the server than
+// Basic auth, which re-hashes the password on every request. We keep the
+// header in sessionStorage so it is gone when the tab closes.
 const AUTH_KEY = 'auth_header';
 
 export function getAuthHeader() {
@@ -32,12 +33,6 @@ export function clearAuthHeader() {
     }
 }
 
-export function basicAuthHeader(username, password) {
-    // btoa only accepts Latin-1, so encode as UTF-8 bytes first.
-    const bytes = new TextEncoder().encode(`${username}:${password}`);
-    return `Basic ${btoa(String.fromCharCode(...bytes))}`;
-}
-
 export class ApiError extends Error {
     constructor(status, data) {
         super(errorMessage(status, data));
@@ -49,6 +44,9 @@ export class ApiError extends Error {
 
 function errorMessage(status, data) {
     if (data && typeof data.detail === 'string') return data.detail;
+    if (data && Array.isArray(data.non_field_errors) && data.non_field_errors.length) {
+        return String(data.non_field_errors[0]);
+    }
     if (status === 401 || status === 403) return 'Invalid username or password.';
     return `Request failed (${status}).`;
 }
@@ -85,14 +83,24 @@ export async function apiFetch(
     return data;
 }
 
-// Checks a username and password with GET accounts/me/ (the backend has no
-// login endpoint) and, if they work, stores the auth header. Returns the
+// Logs in with POST auth/login/ and stores the token header. Returns the
 // account. Used by useLogin and useRegister.
 export async function signInWithPassword(username, password) {
-    const authorization = basicAuthHeader(username, password);
-    const user = await apiFetch('accounts/me/', {
-        headers: { Authorization: authorization },
+    const { token, user } = await apiFetch('auth/login/', {
+        method: 'POST',
+        body: { username, password },
+        auth: false,
     });
-    setAuthHeader(authorization);
+    setAuthHeader(`Token ${token}`);
     return user;
+}
+
+// Revokes the token on the server (best effort) and forgets it locally.
+export function signOut() {
+    if (getAuthHeader()) {
+        apiFetch('auth/logout/', { method: 'POST' }).catch(() => {
+            // Offline or already expired: the local logout still happens.
+        });
+    }
+    clearAuthHeader();
 }

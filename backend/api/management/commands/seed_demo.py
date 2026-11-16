@@ -88,9 +88,11 @@ class Command(BaseCommand):
             for c in commitments:
                 Commitment.objects.create(user=user, **c)
 
+            # completed_hours starts at 0: the done sessions below add
+            # their hours (StudyBlock.save), giving Capstone 3 h and Reading 1 h.
             capstone = Project.objects.create(
                 user=user, title="Capstone report", deadline=day(3),
-                estimated_hours=10, completed_hours=3, priority=8,
+                estimated_hours=10, completed_hours=0, priority=8,
                 status=Project.STATUS_IN_PROGRESS, colour="#9575CD",
             )
             Project.objects.create(
@@ -100,7 +102,7 @@ class Command(BaseCommand):
             )
             reading = Project.objects.create(
                 user=user, title="Reading notes", deadline=day(10),
-                estimated_hours=3, completed_hours=1, priority=3,
+                estimated_hours=3, completed_hours=0, priority=3,
                 status=Project.STATUS_IN_PROGRESS, colour="#81C784",
             )
 

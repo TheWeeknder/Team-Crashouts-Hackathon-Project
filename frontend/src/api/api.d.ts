@@ -5,7 +5,6 @@ export declare const api_url: string
 export declare function getAuthHeader(): string | null
 export declare function setAuthHeader(value: string): void
 export declare function clearAuthHeader(): void
-export declare function basicAuthHeader(username: string, password: string): string
 
 export declare class ApiError extends Error {
   constructor(status: number, data: unknown)
@@ -26,3 +25,4 @@ export interface ApiFetchOptions extends Omit<RequestInit, 'body' | 'headers'> {
 export declare function apiFetch<T = unknown>(path: string, options?: ApiFetchOptions): Promise<T>
 
 export declare function signInWithPassword(username: string, password: string): Promise<unknown>
+export declare function signOut(): void
