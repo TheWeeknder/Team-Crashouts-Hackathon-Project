@@ -30,7 +30,7 @@ The work splits into two pairs. Each pair shares one part of the API, so each pa
 
 ## 2. Current state of the repo (2026-11-15)
 
-Checked against `main` after PR #33 (`374d793`). Since PR #29, `main` has only small changes: shorter landing-page copy and title, the logo changed from "CP" to "TC", and Justin and JP filled in their human reviews. The AI prompt log is now split into one file per person (see 2.4). Everything below is re-checked: all 34 backend tests pass, there are no pending migrations, and `npm run build` and `eslint` pass.
+Checked against `main` after PR #34 (`352d4fe`), plus the 2.3 and 2.4 follow-up on 2026-11-15: decision `D5` is closed, account responses no longer include the password hash, project hours are decimals (migration `0004`), and the small cleanup is done. The AI prompt log is split into one file per person (see 2.4). Everything below is re-checked: all 39 backend tests pass, there are no pending migrations, and `npm run build` and `eslint` pass.
 
 **Summary:** the core demo flow now works end to end in the browser. A user can:
 - sign up and enter projects, commitments, time off and study hours
@@ -38,7 +38,7 @@ Checked against `main` after PR #33 (`374d793`). Since PR #29, `main` has only s
 - see live alerts for projects that don't fit, which stay after a reload, and preview the effect of time off before saving it
 - mark sessions done, which updates project progress
 
-`python manage.py seed_demo` creates the demo account. What's left: the demo has not been rehearsed, Phase 5 polish and pitch work has not started, and the security and validation gaps are still open. The plan does not update itself after a change: alerts update at once, but the user clicks "Update my plan" or "Regenerate" to move the blocks.
+`python manage.py seed_demo` creates the demo account. What's left: the demo has not been rehearsed, Phase 5 polish and pitch work has not started, and server-side validation is still open. The plan does not update itself after a change: alerts update at once, but the user clicks "Update my plan" or "Regenerate" to move the blocks.
 
 ### 2.1 Status by task
 
@@ -51,22 +51,22 @@ Checked against `main` after PR #33 (`374d793`). Since PR #29, `main` has only s
 | `B0.1` | ✅ | DRF, CORS, `TIME_ZONE = "America/Edmonton"`, `api/v1/` route. Auth is Basic auth (`D4`). |
 | `B0.2`, `B1.5`, `B2.1`, `B3.1` | ✅ | EDF planner in `backend/api/scheduler.py`, with free-time building, block placement and alerts. Since PR #29, suggestions count only days that still have free time, say clearly when no study time is left, and suggest a higher daily limit only when the limit is what blocks the work. |
 | `B1.1` | 🟡 | All six models exist and are in Django admin. Field names and types differ from section 4.1 (see 2.2). |
-| `B1.2` | 🟡 | A viewset for each model, scoped to `request.user`. The section 4.1 rules are **not** enforced on the server: `completed_hours ≤ estimated_hours`, `end_time > start_time`, one settings row per user. The frontend forms check some of these. |
+| `B1.2` | 🟡 | A viewset for each model, scoped to `request.user`. Account responses no longer include the password (it is write only), and project hours cannot be negative. Most section 4.1 rules are still **not** enforced on the server: `completed_hours ≤ estimated_hours`, `end_time > start_time`, one settings row per user. The frontend forms check some of these. |
 | `B1.3` | 🟡 | Sign up is `POST /accounts/`, and the current user is `GET /accounts/me/`. There is no token or login endpoint. |
 | `B1.4`, `B2.5`, `B4.4` | ✅ | `python manage.py seed_demo` creates or resets the `demo` account with the section 8 data (`api/management/commands/seed_demo.py`). Tests in `api/test_seed_demo.py` check the 7 / 5 / 2 alert on several weekdays and times, and demo steps 5 and 6. |
 | `B1.6` | ✅ | `StudyBlock` (`date`, `start_time`, `end_time`, `completed`). It has no `missed` or `locked` field. |
 | `B2.2` | ✅ | `POST /planner/generate/`. It snapshots the blocks it replaces and converts a `now` with an offset to Edmonton time. |
-| `B2.3`, `B3.2` | 🟡 | `/planner/events/` and `/planner/week/` exist and are tested, but **the frontend does not use them**. It builds the same data in `lib/events.ts` (see `D1`). There is no `/planner/alerts/`. |
-| `B2.4` | 🟡 | 34 tests: `test_scheduler.py` (planner, suggestions and planner endpoints) and `test_seed_demo.py`. `api/tests.py` is empty: there are no CRUD or permission tests for the other endpoints. |
+| `B2.3`, `B3.2` | 🟡 | `/planner/events/` and `/planner/week/` exist and are tested. They are kept as documented spares (`D5`): the frontend builds the same data in `lib/events.ts`. There is no `/planner/alerts/`. |
+| `B2.4` | 🟡 | 39 tests: `test_scheduler.py` (planner, suggestions and planner endpoints), `test_seed_demo.py`, and `tests.py` (no password in account responses, decimal hours). There are still no general CRUD or permission tests for the other endpoints. |
 | `B3.3` | 🟡 | There is no `progress/` endpoint. The frontend `PATCH`es `completed_hours` and `status` itself (`lib/progress.ts`). |
-| `B4.1` | 🟡 | Marking a block done works. The frontend also adds the block's hours to the project, rounded to whole hours, because `completed_hours` is an integer. |
+| `B4.1` | ✅ | Marking a block done works. The frontend also adds the block's exact hours to the project (a 45-minute block adds 0.75 h), because the hour fields are now decimals. |
 | `B4.2`, `B4.3` | 🟡 | `generate` works as a replan. Nothing replans automatically: after a change, the frontend marks the plan as out of date and asks the user to regenerate. |
 
 **Frontend**
 
 | ID | Status | Notes |
 | --- | --- | --- |
-| `F0.1` | 🟡 | Tailwind, daisyUI, navbar and views: Overview, Dashboard, Calendar, Tasks and Schedule. Views switch through state in `App.tsx`, because `react-router` is not installed. `npm run build` passes. |
+| `F0.1` | 🟡 | Tailwind, daisyUI, navbar and views: Dashboard, Calendar, Tasks and Schedule. The Overview page was removed on 2026-11-15: users land on the Dashboard after login, and again after logging out and back in. The logo also opens the Dashboard. Views switch through state in `App.tsx`, because `react-router` is not installed. `npm run build` passes. |
 | `F0.2` | ✅ | `types/api.ts`, `types/backend.ts` and FullCalendar. The mock data (`services/mocks.ts`) has been deleted, because the app uses real data. |
 | `F1.1` | ✅ | `api/api.js` with TanStack Query hooks for every resource, plus `usePlannerData` (all lists at once), `usePlanCheck` (live alerts from a `dry_run` generate that saves nothing; it reloads after every save) and `usePlanStatus` (when the plan was generated and whether it is out of date, kept in `localStorage` per account). `api/api.d.ts` gives the client types. |
 | `F1.2` | ✅ | Login and register. `App.tsx` shows them until the user signs in. |
@@ -92,7 +92,7 @@ The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `Pro
 | Route prefix `/api/` | `/api/v1/` |
 | `Task` at `/tasks/` | `Project` at `/projects/` |
 | `deadline` is a datetime | `deadline` is a date |
-| Hours are decimals | `estimated_hours` and `completed_hours` are integers |
+| Hours are decimals | Same since migration `0004`: `estimated_hours` and `completed_hours` are decimals with 2 places, returned as JSON numbers (`COERCE_DECIMAL_TO_STRING = False`) |
 | `priority` 1 (high) to 3 (low) | `priority` 0 to 10, higher means more important |
 | `status`: `todo`, `in_progress`, `done` | `incompleted`, `in_progress`, `completed`, `skipped` |
 | `color`, any hex | `colour`, one of 9 preset hex values |
@@ -109,23 +109,23 @@ The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `Pro
 
 | ID | Decision | Outcome |
 | --- | --- | --- |
-| `D1` | How do the components get calendar-shaped data? | **Changed: the conversion happens in the frontend** (shared log #36, now [JP's log](../prompts/JP.md)). `src/lib/events.ts` turns projects, blocks, commitments and overrides into `CalendarEvent`s. It expands recurring commitments and adds deadline markers. The backend `/planner/events/` endpoint and the `useCalendarEvents` hook also exist, but nothing uses them. See `D5`. |
-| `D2` | How does the weekly progress view get its data? | **Changed: built in the frontend.** `buildWeeklySummary` in `lib/events.ts` builds it. At-risk flags come from the live `usePlanCheck` alerts. `/planner/week/` and `useWeeklySummary` also exist, unused. |
+| `D1` | How do the components get calendar-shaped data? | **Changed: the conversion happens in the frontend** (shared log #36, now [JP's log](../prompts/JP.md)). `src/lib/events.ts` turns projects, blocks, commitments and overrides into `CalendarEvent`s. It expands recurring commitments and adds deadline markers. The backend `/planner/events/` endpoint is kept as a spare (see `D5`). |
+| `D2` | How does the weekly progress view get its data? | **Changed: built in the frontend.** `buildWeeklySummary` in `lib/events.ts` builds it. At-risk flags come from the live `usePlanCheck` alerts. `/planner/week/` is kept as a spare (see `D5`). |
 | `D3` | How does a "low-energy day" work? | **Done.** A `DayOverride` that blocks part or all of a day, entered with "Can't study today" or on the Schedule page. |
 | `D4` | Auth | **Done.** Basic auth for the demo. |
-| `D5` | **Open:** the backend and frontend now each have a version of the events and weekly summary logic. | Recommended: keep the frontend version, because the pages already use it. Then either delete `/planner/events/`, `/planner/week/`, `useCalendarEvents` and `useWeeklySummary`, or keep them as documented spares. Since PR #29, the client's at-risk flags are live too. One difference remains: the server's daily capacity subtracts commitments and overrides, while `buildWeeklySummary` uses the daily limit on every work day. |
+| `D5` | Which version of the events and weekly summary logic do we keep? | **Done (2026-11-15): the frontend version** in `lib/events.ts`, because the pages already use it. The unused `useCalendarEvents` and `useWeeklySummary` hooks are deleted. `/planner/events/` and `/planner/week/` stay as documented spares with their tests (a comment in `views.py` says so, and says that a rule change there must also go into `lib/events.ts`). The last difference is fixed: `buildWeeklySummary` now counts daily capacity like the server, as free time in the work window after commitments and time off, capped by the daily limit (`dayCapacityHours`). |
 
 ### 2.4 Known bugs and cleanup
 
 - **Fixed:** `npm run build` failed on the unused `EventItem.tsx` and `EventList.tsx`. These and the other unused files (`services/mocks.ts`, the empty `api/schedule.js` and `hooks/useSchedules.js`) are deleted. The build passes, with a warning that the bundle is larger than 500 kB.
-- **Account responses include the password hash.** `AccountSerializer` uses `fields = "__all__"`. Make `password` write only.
-- **Whole hours only:** `estimated_hours` and `completed_hours` are integers. A 45-minute block that is marked done adds 1 hour. Changing them to `DecimalField` would fix this.
+- **Fixed on 2026-11-15:** account responses included the password hash. `password` is now write only in `AccountSerializer`, and tests in `api/tests.py` check sign-up, `/accounts/me/` and the list.
+- **Fixed on 2026-11-15:** hours were whole numbers only, so a 45-minute block marked done added 1 hour. `estimated_hours` and `completed_hours` are now `DecimalField`s with 2 places and a minimum of 0 (migration `0004`), returned as JSON numbers. The task and "Log hours" forms accept steps of 0.25, and "Mark as done" adds the exact block length. Run `python manage.py migrate` after pulling.
 - **Fixed in PR #29:** alerts were gone after a reload. `usePlanCheck` now loads them live.
 - **Two requests per change:** every save refetches `usePlanCheck`, which runs the full planner as a dry run. This is fine for one user, but watch it if the planner gets slower.
 - **Time zone:** tzdata 2026.6 gives `America/Edmonton` a **-06:00** offset in November 2026. The backend and `lib/dates.ts` use the real zone. Do not hard-code `-07:00`, as the section 4 examples do.
-- **Still open:** `frontend/package.json` lists `@fullcalendar/react` twice, `backend/db.sqlite3.bak` is tracked in git, and `frontend/README.md` is still the Vite template.
+- **Fixed on 2026-11-15:** the duplicate `@fullcalendar/react` key in `frontend/package.json` is removed, `backend/db.sqlite3.bak` is no longer tracked (the file stays on disk, and `.gitignore` now ignores `*.sqlite3.bak`), and `frontend/README.md` is a short note that points to the root README.
 - **Fixed on 2026-11-15:** the shared `Prompts.md` had duplicate entry numbers twice, because entries from different branches collided. Each person now logs in their own file in [`prompts/`](../prompts/), numbered from 1. `Prompts.md` is now an index for judges, with a frozen table that maps the old shared numbers (1 to 44) to the new files. Older references such as "entry 36" use the shared numbers.
-- **AI log gaps:**
+- **AI log gaps** (still open; only each person can fill in their own reviews):
   - Cody has 20 of 21 entries with **Human review** still `_TBD_`, and Justin has 3.
   - JP's reviews contain only the name "JP". Judges will look for what was kept, edited or rejected, so add a sentence to each.
   - Robin's log is empty. If Robin used AI, add the entries. If not, write "No AI used" in the file so the judges see it was checked.
@@ -134,13 +134,13 @@ The frontend components (`MonthlyCalendar`, `WeeklyCalendar`, `PlanForDay`, `Pro
 
 1. ~~Fix the build~~ and ~~`seed_demo`~~: done.
 2. **Rehearse the demo (`A5.1`, all):** run `seed_demo`, walk through section 8 in the browser, and fix what breaks.
-3. **`D5` (Cody and JP):** decide which version of the events and summary logic to keep, then delete the other or document it.
-4. **Security and data quality (Justin):** a write-only password, server-side validation (`B1.2`), and CRUD and permission tests in `api/tests.py` (`B2.4`).
+3. ~~**`D5` (Cody and JP):** decide which version of the events and summary logic to keep~~: done, the frontend version (see 2.3).
+4. **Security and data quality (Justin):** ~~a write-only password~~ (done), server-side validation (`B1.2`), and more CRUD and permission tests in `api/tests.py` (`B2.4`).
 5. **Small UX gap (Robin):** at-risk badges on the Tasks page (`F3.1`). `usePlanCheck` already has the alerts, so this is a few lines.
 6. **Phase 5:** `docs/ALGORITHM.md` (Cody), visual polish (Robin), slides and the demo script (JP).
 7. **AI log (`A5.2`, all):** fill in the human reviews in your own file in `prompts/` (see the AI log gaps in 2.4). Cody has the most left (20).
-8. **Small cleanup (anyone, 10 minutes):** remove the duplicate `@fullcalendar/react` key, untrack `backend/db.sqlite3.bak`, and replace `frontend/README.md` with a short note that points to the root README.
-9. **Stretch, only if 1–8 are done:** `react-router`, automatic replanning after a change (`B4.3`), decimal hours, and "Missed" and "Lock" for blocks.
+8. ~~**Small cleanup:** the duplicate `@fullcalendar/react` key, the tracked `db.sqlite3.bak` and the template `frontend/README.md`~~: done.
+9. **Stretch, only if 1–8 are done:** `react-router`, automatic replanning after a change (`B4.3`), ~~decimal hours~~ (done), and "Missed" and "Lock" for blocks.
 
 ---
 

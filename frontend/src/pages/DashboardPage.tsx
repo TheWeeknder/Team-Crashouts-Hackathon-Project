@@ -76,11 +76,13 @@ export default function DashboardPage({ onOpenSettings }: DashboardPageProps) {
           projects: data.projects,
           blocks: data.blocks,
           settings: data.settings,
+          commitments: data.commitments,
+          overrides: data.overrides,
           alerts,
         },
         weekStart,
       ),
-    [data.projects, data.blocks, data.settings, alerts, weekStart],
+    [data.projects, data.blocks, data.settings, data.commitments, data.overrides, alerts, weekStart],
   );
 
   const selectedEvent = events.find((e) => e.id === selectedEventId) ?? null;

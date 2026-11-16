@@ -45,6 +45,11 @@ interface EventDetailsProps {
 }
 
 // Details for one calendar event, plus "mark done" for study sessions.
+// A block's length in hours, rounded to the backend's 2 decimals.
+function sessionHours(block: StudyBlock): number {
+  return Math.round(blockHours(block) * 100) / 100;
+}
+
 export default function EventDetails({ event, projects, blocks }: EventDetailsProps) {
   const { updateStudyBlock } = useStudyBlocks();
   const { updateProject } = useProjects();
@@ -64,8 +69,8 @@ export default function EventDetails({ event, projects, blocks }: EventDetailsPr
     try {
       await updateStudyBlock.mutateAsync({ id: block.id, completed: nowDone });
       if (project) {
-        // Round first so "done" then "undo" always cancel out.
-        const hours = Math.round(blockHours(block));
+        // Round to 2 decimals first so "done" then "undo" always cancel out.
+        const hours = sessionHours(block);
         await updateProject.mutateAsync({
           id: project.id,
           ...nextProgress(project, nowDone ? hours : -hours),
@@ -142,8 +147,8 @@ export default function EventDetails({ event, projects, blocks }: EventDetailsPr
           </button>
           {project && (
             <p className="text-center text-xs text-base-content/50">
-              {block.completed ? "Removes" : "Adds"} {Math.round(blockHours(block))} h{" "}
-              {block.completed ? "from" : "to"} {project.title} (whole hours only).
+              {block.completed ? "Removes" : "Adds"} {sessionHours(block)} h{" "}
+              {block.completed ? "from" : "to"} {project.title}.
             </p>
           )}
         </div>

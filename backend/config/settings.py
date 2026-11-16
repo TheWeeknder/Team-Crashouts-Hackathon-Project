@@ -49,6 +49,8 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    # Return DecimalFields (project hours) as JSON numbers, not strings.
+    "COERCE_DECIMAL_TO_STRING": False,
 }
 
 MIDDLEWARE = [

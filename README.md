@@ -143,7 +143,7 @@ All routes start with `/api/v1/` and use HTTP Basic auth. Each user sees only th
 | `day-overrides/` | Time blocked on one date (sick day, emergency) |
 | `study-blocks/` | Scheduled study sessions (`?date=`, `?project=`, `?completed=`) |
 | `GET planner/events/?start=&end=` | Calendar events in a date range: study blocks, commitments (recurring ones expanded) and day overrides. `end` is exclusive. The frontend does not use it: it builds events in `lib/events.ts`. |
-| `GET planner/week/?start=` | Weekly summary: hours planned, done and missed, daily capacity, and project progress with at-risk flags. Not used by the frontend yet. |
+| `GET planner/week/?start=` | Weekly summary: hours planned, done and missed, daily capacity, and project progress with at-risk flags. The frontend does not use it: it builds the same summary in `lib/events.ts`. |
 | `POST planner/generate/` | Build a new plan. Body: `{ "now": "2026-11-18T14:30-06:00", "dry_run": false }`. A `now` with an offset is converted to America/Edmonton. Returns `{ now, blocks, alerts }`. |
 
 ---
@@ -158,23 +158,24 @@ See [docs/ROADMAP.md](docs/ROADMAP.md), section 2, for the status of each task, 
 - [x] Sign up and login (Basic auth)
 - [x] Scheduling algorithm: earliest deadline first, with breaks, block sizes and a daily limit
 - [x] Feasibility alerts with suggestions
-- [x] Backend tests for the planner, its endpoints and the demo data (30 passing)
+- [x] Backend tests for the planner, its endpoints, the demo data, account responses and decimal hours (39 passing)
 - [x] `seed_demo` command with the demo data
 - [x] `npm run build` passes
 - [x] App shell with Tailwind + daisyUI, light and dark mode, and mobile layout
 - [x] Tasks, Schedule (commitments and time off) and Settings forms
 - [x] Dashboard: weekly calendar, day plan, progress tracker, alerts panel, "Generate plan" and quick actions
 - [x] Monthly calendar on real data, with event details
-- [x] Mark study blocks done and log hours, which updates project progress
+- [x] Mark study blocks done and log hours, which updates project progress (hours keep fractions, e.g. 0.75 h)
+- [x] One version of the calendar events and summary logic: the frontend's `lib/events.ts` (roadmap `D5`)
+- [x] Account responses no longer include the password hash
 
 **Still to do** (in priority order; details in roadmap section 2.5)
 
 - [ ] Rehearse the demo script on a fresh database
-- [ ] Pick one version of the calendar events and summary logic, frontend or backend (roadmap `D5`)
-- [ ] Hide the password hash in account responses; server-side validation; CRUD and permission tests
-- [ ] At-risk badges on the Tasks page; keep alerts after a page reload
+- [ ] Server-side validation; more CRUD and permission tests
+- [ ] At-risk badges on the Tasks page
 - [ ] Polish, `docs/ALGORITHM.md`, slides
-- [ ] Stretch: routing, automatic replanning, decimal hours, "Missed" and "Lock" for blocks
+- [ ] Stretch: routing, automatic replanning, "Missed" and "Lock" for blocks
 
 ---
 

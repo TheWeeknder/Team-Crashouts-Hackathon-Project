@@ -49,8 +49,15 @@ class Project(models.Model):
     user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='projects')
     title = models.CharField(max_length=255)
     deadline = models.DateField(default=None, blank=True, null=True)
-    estimated_hours = models.IntegerField(default=0, blank=True, null=True)
-    completed_hours = models.IntegerField(default=0, blank=True, null=True)
+    # Decimals, so a 45-minute session adds 0.75 h instead of rounding to 1.
+    estimated_hours = models.DecimalField(
+        max_digits=6, decimal_places=2, default=0, blank=True, null=True,
+        validators=[MinValueValidator(0)],
+    )
+    completed_hours = models.DecimalField(
+        max_digits=6, decimal_places=2, default=0, blank=True, null=True,
+        validators=[MinValueValidator(0)],
+    )
     # remaining_hours = models.IntegerField(default=0, blank=True, null=True)
     priority = models.IntegerField(default=0, blank=True, null=True, validators=[MinValueValidator(0),MaxValueValidator(10)])
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_IN_PROGRESS)
@@ -60,7 +67,7 @@ class Project(models.Model):
     def remaining_hours(self):
         estimated = self.estimated_hours or 0
         completed = self.completed_hours or 0
-        return max(estimated - completed, 0)
+        return float(max(estimated - completed, 0))
 
     def __str__(self):
         return self.title

@@ -7,6 +7,8 @@ class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         fields = "__all__"
+        # Sign-up and password changes send it; responses never return the hash.
+        extra_kwargs = {"password": {"write_only": True}}
 
 # --- Projects ---------------------------------------------------------------
 
