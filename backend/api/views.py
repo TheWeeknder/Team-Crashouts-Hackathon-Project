@@ -263,6 +263,11 @@ class GeneratePlanView(APIView):
 
 
 # --- Calendar events and weekly summary (ROADMAP 2.3, D1 and D2) ---------------
+#
+# Spare endpoints (ROADMAP decision D5). The frontend builds the same data
+# itself in frontend/src/lib/events.ts and does not call these. They are kept,
+# with their tests, for API clients and debugging. If you change the rules
+# here (for example how daily capacity is counted), change lib/events.ts too.
 
 STUDY_COLOUR = "#9575CD"  # used when a project has no colour or is white
 COMMITMENT_COLOUR = "#9E9E9E"
@@ -435,8 +440,8 @@ class WeeklySummaryView(APIView):
         for p in projects.order_by(F("deadline").asc(nulls_last=True), "id"):
             if p.deadline and p.deadline < start and p.status == Project.STATUS_COMPLETED:
                 continue  # finished before this week
-            estimated = p.estimated_hours or 0
-            completed = p.completed_hours or 0
+            estimated = float(p.estimated_hours or 0)
+            completed = float(p.completed_hours or 0)
             tasks.append({
                 "task_id": p.id,
                 "title": p.title,
@@ -502,6 +507,11 @@ def _to_scheduler_commitment(c):
     )
 
 
+def _hours(value):
+    """Decimal project hours -> float for the scheduler (None stays None)."""
+    return None if value is None else float(value)
+
+
 def _scheduler_inputs(user):
     """The user's rows converted to scheduler dataclasses (everything but kept blocks)."""
     return {
@@ -511,8 +521,8 @@ def _scheduler_inputs(user):
                 id=p.id,
                 title=p.title,
                 deadline=p.deadline,
-                estimated_hours=p.estimated_hours,
-                completed_hours=p.completed_hours,
+                estimated_hours=_hours(p.estimated_hours),
+                completed_hours=_hours(p.completed_hours),
                 priority=p.priority,
                 status=p.status,
             )

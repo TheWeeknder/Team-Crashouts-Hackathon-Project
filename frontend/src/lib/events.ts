@@ -214,18 +214,76 @@ export function buildCalendarEvents(
 
 // ---------- Weekly summary ----------
 
+// Same defaults as the backend scheduler (scheduler.Settings).
 const DEFAULT_MAX_HOURS = 6;
+const DEFAULT_DAY_START = "09:00:00";
+const DEFAULT_DAY_END = "19:00:00";
+const MINUTES_PER_DAY = 24 * 60;
+
+type Interval = [number, number]; // minutes after midnight, [start, end)
+
+// Removes [start, end) from every interval in `free`.
+function subtract(free: Interval[], start: number, end: number): Interval[] {
+  const out: Interval[] = [];
+  for (const [a, b] of free) {
+    if (end <= a || start >= b) {
+      out.push([a, b]);
+      continue;
+    }
+    if (a < start) out.push([a, start]);
+    if (end < b) out.push([end, b]);
+  }
+  return out;
+}
+
+// A missing time means the start or end of the day (backend _span rule).
+function busyMinutes(start: string | null, end: string | null): Interval {
+  return [start ? timeToMinutes(start) : 0, end ? timeToMinutes(end) : MINUTES_PER_DAY];
+}
+
+// Study hours a day allows: free time in the work window after commitments
+// and time off, capped by the daily limit. Matches the backend's
+// scheduler.daily_capacity, so the dashboard and /planner/week/ agree (D5).
+export function dayCapacityHours(
+  day: ISODate,
+  settings: PlannerSettings | null,
+  commitments: Commitment[],
+  overrides: DayOverride[],
+): number {
+  const workDays = parseWeekdays(settings?.work_days);
+  if (workDays.length > 0 && !workDays.includes(weekdayOf(day))) return 0;
+
+  const start = timeToMinutes(settings?.day_start_time || DEFAULT_DAY_START);
+  const end = timeToMinutes(settings?.day_end_time || DEFAULT_DAY_END);
+  let free: Interval[] = start < end ? [[start, end]] : [];
+  for (const c of commitments) {
+    if (commitmentOccursOn(c, day)) free = subtract(free, ...busyMinutes(c.start_time, c.end_time));
+  }
+  for (const o of overrides) {
+    if (o.date === day) free = subtract(free, ...busyMinutes(o.start_time, o.end_time));
+  }
+  const freeMinutes = free.reduce((sum, [a, b]) => sum + (b - a), 0);
+  const maxHours =
+    settings?.max_hours_per_day && settings.max_hours_per_day > 0
+      ? settings.max_hours_per_day
+      : DEFAULT_MAX_HOURS;
+  return Math.min(freeMinutes, maxHours * 60) / 60;
+}
 
 export function buildWeeklySummary(
   {
     projects,
     blocks,
     settings,
+    commitments = [],
+    overrides = [],
     alerts = [],
   }: {
     projects: Project[];
     blocks: StudyBlock[];
     settings: PlannerSettings | null;
+    commitments?: Commitment[];
+    overrides?: DayOverride[];
     alerts?: PlanAlert[];
   },
   weekStart: ISODate,
@@ -233,13 +291,15 @@ export function buildWeeklySummary(
   const weekEnd = addDays(weekStart, 6);
   const now = new Date();
   const today = todayISO();
-  const workDays = parseWeekdays(settings?.work_days);
-  const maxHours = settings?.max_hours_per_day || DEFAULT_MAX_HOURS;
 
   const days: WeeklyDaySummary[] = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(weekStart, i);
-    const works = workDays.length === 0 || workDays.includes(i);
-    return { date, capacity_hours: works ? maxHours : 0, planned_hours: 0, done_hours: 0 };
+    return {
+      date,
+      capacity_hours: dayCapacityHours(date, settings, commitments, overrides),
+      planned_hours: 0,
+      done_hours: 0,
+    };
   });
 
   let planned = 0;

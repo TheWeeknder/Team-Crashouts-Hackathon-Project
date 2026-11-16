@@ -51,12 +51,12 @@ export default function TaskForm({ project, onDone }: TaskFormProps) {
     const errors: Partial<Record<FieldName, string>> = {};
     if (!title.trim()) errors.title = "Give the task a name.";
     const est = Number(estimated);
-    if (!estimated || !Number.isInteger(est) || est < 1) {
-      errors.estimated_hours = "Enter a whole number of hours (1 or more).";
+    if (!estimated || !Number.isFinite(est) || est <= 0) {
+      errors.estimated_hours = "Enter the hours the task needs, e.g. 10 or 2.5.";
     }
     const done = Number(completed);
-    if (project && (!Number.isInteger(done) || done < 0)) {
-      errors.completed_hours = "Enter a whole number of hours (0 or more).";
+    if (project && (completed === "" || !Number.isFinite(done) || done < 0)) {
+      errors.completed_hours = "Enter the hours done so far (0 or more).";
     }
     return errors;
   }
@@ -139,9 +139,9 @@ export default function TaskForm({ project, onDone }: TaskFormProps) {
           <input
             id={`${id}-estimated`}
             type="number"
-            inputMode="numeric"
-            min={1}
-            step={1}
+            inputMode="decimal"
+            min={0.25}
+            step={0.25}
             className={`input w-full ${errorFor("estimated_hours") ? "input-error" : ""}`}
             value={estimated}
             onChange={(e) => setEstimated(e.target.value)}
@@ -197,9 +197,9 @@ export default function TaskForm({ project, onDone }: TaskFormProps) {
           <input
             id={`${id}-completed`}
             type="number"
-            inputMode="numeric"
+            inputMode="decimal"
             min={0}
-            step={1}
+            step={0.25}
             className={`input w-full ${errorFor("completed_hours") ? "input-error" : ""}`}
             value={completed}
             onChange={(e) => setCompleted(e.target.value)}

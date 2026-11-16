@@ -20,8 +20,8 @@ export default function LogHoursForm({ project, onDone }: { project: Project; on
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const value = Number(hours);
-    if (!Number.isInteger(value) || value < 1) {
-      setError("Enter a whole number of hours (1 or more).");
+    if (!hours || !Number.isFinite(value) || value <= 0) {
+      setError("Enter the hours you studied, e.g. 1.5.");
       return;
     }
     setError(null);
@@ -48,14 +48,14 @@ export default function LogHoursForm({ project, onDone }: { project: Project; on
         label="Hours studied"
         htmlFor={`${id}-hours`}
         error={error ?? server.fields.completed_hours}
-        hint="The planner only stores whole hours."
+        hint="Fractions are fine, e.g. 0.75 for 45 minutes."
       >
         <input
           id={`${id}-hours`}
           type="number"
-          min={1}
-          step={1}
-          inputMode="numeric"
+          min={0.25}
+          step={0.25}
+          inputMode="decimal"
           className={`input w-full ${error ? "input-error" : ""}`}
           value={hours}
           onChange={(e) => setHours(e.target.value)}

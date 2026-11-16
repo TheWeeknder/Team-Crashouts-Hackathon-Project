@@ -251,4 +251,63 @@ Number entries in this file from 1. Entries moved from the old shared log keep t
 - **Used by:** Justin
 - **Prompt:** "commit and push"
 - **Output / changes:** Committed `prompts/`, `Prompts.md`, `CLAUDE.md`, `README.md` and `docs/ROADMAP.md` on `justins-post-hack` and pushed the branch to `origin`.
+- **Human review:** Justin
+
+### 17. Finish the 2.3 decisions and fix the 2.4 bugs
+
+- **Date:** 2026-11-15
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "Complete 2.3 recommendations, and go through 2.4 and fix what is possible and update Roadmap once completed."
+- **Output / changes:**
+  - `D5` (keep the frontend events and summary logic):
+    - `frontend/src/lib/events.ts`: new `dayCapacityHours`. `buildWeeklySummary` now counts daily capacity like the server: free time in the work window after commitments and time off, capped by the daily limit. `DashboardPage.tsx` passes commitments and overrides to it.
+    - Deleted the unused `useCalendarEvents` and `useWeeklySummary` hooks and their `.d.ts` files.
+    - `backend/api/views.py`: a comment marks `/planner/events/` and `/planner/week/` as documented spares. `README.md` updated to match.
+  - Password hash: `AccountSerializer` makes `password` write only.
+  - Decimal hours:
+    - `Project.estimated_hours` and `completed_hours` are `DecimalField`s (2 places, minimum 0), with migration `0004_decimal_project_hours`.
+    - `COERCE_DECIMAL_TO_STRING = False` in `config/settings.py`, so the API returns numbers.
+    - `views.py` converts hours to float for the scheduler.
+    - Frontend: `lib/progress.ts` rounds to 2 decimals, not whole hours. `TaskForm` and `LogHoursForm` accept steps of 0.25. `EventDetails` adds the exact block length.
+  - `backend/api/tests.py`: 5 new tests (no password in account responses, decimal hours round trip, negative hours rejected, the planner uses fractional hours). 39 tests pass.
+  - Cleanup:
+    - removed the duplicate `@fullcalendar/react` key from `frontend/package.json`
+    - untracked `backend/db.sqlite3.bak` and added `*.sqlite3.bak` to `.gitignore`
+    - replaced the template `frontend/README.md` with a short note
+  - `docs/ROADMAP.md` (sections 2, 2.1, 2.2, 2.3, 2.4, 2.5) and the `README.md` status list are updated.
+  - The AI log gaps in 2.4 are left open, because only each person can write their own reviews.
+- **Human review:** Justin
+
+### 18. Remove the Overview page and land on the dashboard
+
+- **Date:** 2026-11-15
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "Remove Overview page, we want a functional easy to use app. Users should be able to see their dashboard right away, after login users should land in dashboard"
+- **Output / changes:**
+  - `frontend/src/App.tsx`:
+    - removed the Overview view (hero, feature list and nav item)
+    - the default view is now the Dashboard, and the logo opens the Dashboard
+    - logging out resets the view to the Dashboard and closes the settings modal, so the next login always lands on the Dashboard
+  - `docs/ROADMAP.md`: updated the `F0.1` row.
+  - `npm run build` and `eslint` pass.
+- **Human review:** _TBD_
+
+### 19. Commit and push the 2.3/2.4 fixes and the dashboard change
+
+- **Date:** 2026-11-15
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "create a branch, commit and push"
+- **Output / changes:** Created the branch `justin/roadmap-2.3-2.4-dashboard` from `main`, committed the work from entries 17 and 18, and pushed the branch to `origin`.
+- **Human review:** _TBD_
+
+### 20. Create the pull request
+
+- **Date:** 2026-11-15
+- **Tool / model:** Claude Code (Claude Opus 5.5), VS Code extension
+- **Used by:** Justin
+- **Prompt:** "create the pull request"
+- **Output / changes:** The branch `justin/roadmap-2.3-2.4-dashboard` had been deleted from GitHub. After Justin confirmed, pushed it again and opened PR #1 against `main`. Added this log entry to the branch.
 - **Human review:** _TBD_
